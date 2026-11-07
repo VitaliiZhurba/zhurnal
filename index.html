@@ -1,0 +1,1156 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2C5A42">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Журнал">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Журнал репетитора</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one-column phone app — summary cards, week grid or list, floating tab bar, bottom sheets */
+:root{
+  --bg:#EDF0EC; --surface:#FFFFFF; --surface-2:#E2E7E2; --fg:#17211B; --muted:#66726A; --line:#D6DDD6;
+  --accent:#2C5A42; --accent-fg:#FFFFFF; --accent-soft:#D6E4DA; --gold:#A9843D;
+  --paid:#3D7653; --paid-bg:#DCEADF; --debt:#A2452E; --debt-bg:#F4DDD5;
+  --plan:#53749D; --plan-bg:#DEE6F1; --pre:#956F27; --pre-bg:#F2E6CA;
+  --miss:#C2702A; --miss-bg:#F7E2CB; --canc:#848A86; --canc-bg:#E4E7E5;
+  --now:#C0462C; --scrim:rgba(12,24,18,.38);
+  --shadow:0 1px 2px rgba(20,40,30,.06),0 6px 16px rgba(20,40,30,.06);
+  --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1411; --surface:#18201B; --surface-2:#232D27; --fg:#E7EDE9; --muted:#8F9B94; --line:#2C3731;
+  --accent:#62A07B; --accent-fg:#0E1411; --accent-soft:#213A2C; --gold:#D3B06A;
+  --paid:#7DBB94; --paid-bg:#1D3326; --debt:#E58A71; --debt-bg:#3D231C;
+  --plan:#8FAED6; --plan-bg:#1D293A; --pre:#DBB86F; --pre-bg:#372D1B;
+  --miss:#E7A462; --miss-bg:#3A2A1A; --canc:#9CA29E; --canc-bg:#262C29;
+  --now:#EC6E52; --scrim:rgba(0,0,0,.55); --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1411; --surface:#18201B; --surface-2:#232D27; --fg:#E7EDE9; --muted:#8F9B94; --line:#2C3731;
+  --accent:#62A07B; --accent-fg:#0E1411; --accent-soft:#213A2C; --gold:#D3B06A;
+  --paid:#7DBB94; --paid-bg:#1D3326; --debt:#E58A71; --debt-bg:#3D231C;
+  --plan:#8FAED6; --plan-bg:#1D293A; --pre:#DBB86F; --pre-bg:#372D1B;
+  --miss:#E7A462; --miss-bg:#3A2A1A; --canc:#9CA29E; --canc-bg:#262C29;
+  --now:#EC6E52; --scrim:rgba(0,0,0,.55); --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.4;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,label.sw:focus-within span{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 120px}
+.muted{color:var(--muted)}
+h1{font-size:22px;font-weight:800;margin:0;letter-spacing:-.01em}
+
+/* summary cards */
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sumcard{background:var(--surface);border-radius:16px;padding:12px 12px 13px;text-align:left;border:0;box-shadow:var(--shadow);min-width:0}
+.sumlabel{font-size:10px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sumval{font-size:19px;font-weight:800;margin-top:4px;white-space:nowrap}
+.sumval small{font-size:12px;color:var(--muted);font-weight:600}
+.bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--surface-2);margin-top:9px;gap:2px}
+.bar i{display:block;border-radius:2px}
+
+.note{background:var(--pre-bg);color:var(--fg);border-radius:14px;padding:10px 12px;font-size:13px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.note button{border:0;background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px}
+
+.weeknav{display:flex;align-items:center;gap:6px;margin-top:14px}
+.iconbtn{width:38px;height:38px;border-radius:50%;border:0;background:transparent;color:var(--accent);display:grid;place-items:center;flex:none}
+.iconbtn.solid{background:var(--surface);box-shadow:var(--shadow)}
+.wtitle{flex:1;text-align:center;font-weight:800;font-size:15.5px;text-wrap:balance;min-width:0}
+.pillbtn{border:0;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:8px 12px;font-weight:700;font-size:13px;flex:none}
+.next{font-size:13px;color:var(--accent);font-weight:600;text-align:center;margin-top:2px}
+.seg{display:flex;background:var(--surface-2);border-radius:12px;padding:3px;margin:12px 0}
+.seg button{flex:1;border:0;background:transparent;padding:8px;border-radius:9px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+
+/* week grid */
+.grid{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:6px 4px 10px 0}
+.g-head,.g-body{display:grid;grid-template-columns:24px repeat(7,minmax(0,1fr))}
+.g-day{text-align:center;padding:2px 0 8px;border:0;background:none}
+.g-day small{display:block;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.05em}
+.g-day b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;font-size:14px;margin-top:2px}
+.g-day.today b{background:var(--accent);color:var(--accent-fg)}
+.g-body{position:relative}
+.g-times{position:relative}
+.g-times span{position:absolute;right:4px;font-size:10px;color:var(--muted);transform:translateY(-50%)}
+.hl{position:absolute;left:24px;right:0;height:1px;background:var(--line);pointer-events:none}
+.g-col{position:relative;border-left:1px solid var(--line);cursor:copy}
+.g-col.today{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.blk{position:absolute;border:1px solid transparent;border-radius:8px;padding:3px 3px 2px;text-align:left;overflow:hidden;display:flex;flex-direction:column;gap:1px;line-height:1.12;z-index:1}
+.blk .bt{font-size:9.5px;font-weight:700}
+.blk .bn{font-size:10.5px;font-weight:700;overflow-wrap:anywhere}
+.gbar{display:block;height:4px;border-radius:2px;margin-top:2px;width:70%;background:var(--accent)}
+.nowline{position:absolute;left:-1px;right:0;height:2px;background:var(--now);z-index:3;pointer-events:none}
+.nowline::before{content:"";position:absolute;left:-3px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--now)}
+
+/* state colors */
+.s-paid{background:var(--paid-bg);border-color:color-mix(in srgb,var(--paid) 35%,transparent)} .s-paid .bt{color:var(--paid)}
+.s-debt{background:var(--debt-bg);border-color:color-mix(in srgb,var(--debt) 40%,transparent)} .s-debt .bt{color:var(--debt)}
+.s-planned{background:var(--plan-bg);border-color:color-mix(in srgb,var(--plan) 35%,transparent)} .s-planned .bt{color:var(--plan)}
+.s-prepaid{background:var(--pre-bg);border-color:color-mix(in srgb,var(--pre) 45%,transparent)} .s-prepaid .bt{color:var(--pre)}
+.s-missed{background:var(--miss-bg);border-color:color-mix(in srgb,var(--miss) 40%,transparent)} .s-missed .bt{color:var(--miss)}
+.s-cancelled{background:var(--canc-bg);border-color:color-mix(in srgb,var(--canc) 35%,transparent)} .s-cancelled .bt{color:var(--canc)} .s-cancelled .bn{text-decoration:line-through;opacity:.7}
+
+/* list */
+.dayhdr{display:inline-block;background:var(--accent);color:var(--accent-fg);font-size:11px;font-weight:800;letter-spacing:.07em;padding:5px 11px;border-radius:999px;margin:14px 0 8px;text-transform:uppercase}
+.dayhdr.past{background:var(--surface-2);color:var(--muted)}
+.lrow{display:flex;align-items:center;gap:12px;width:100%;border:1px solid transparent;border-radius:14px;padding:12px 14px;margin-bottom:8px;text-align:left}
+.lrow .lt{font-weight:800;width:44px;flex:none}
+.lrow .ln{flex:1;font-weight:600;min-width:0;overflow-wrap:anywhere}
+.lrow .lp{font-size:12.5px;font-weight:700;color:var(--muted);text-align:right;flex:none}
+.empty{background:var(--surface);border-radius:18px;padding:28px 18px;text-align:center;box-shadow:var(--shadow)}
+.empty p{margin:0 0 14px;color:var(--muted)}
+
+/* tab bar + fab */
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:4px;background:var(--surface);border-radius:999px;padding:5px;box-shadow:0 6px 24px rgba(0,0,0,.14);z-index:20}
+.tab{border:0;background:transparent;border-radius:999px;padding:6px 20px;display:flex;flex-direction:column;align-items:center;font-weight:700;font-size:11px;color:var(--muted);gap:1px}
+.tab[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;box-shadow:0 6px 18px rgba(20,60,40,.35);z-index:21}
+
+/* students */
+.toolbar{display:flex;gap:8px;align-items:center}
+.search{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:999px;padding:0 14px;height:42px;box-shadow:var(--shadow);color:var(--muted);min-width:0}
+.search input{border:0;background:transparent;font:inherit;font-size:16px;color:var(--fg);flex:1;min-width:0;outline:none}
+.chips{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.chip{border:0;border-radius:999px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:13px;color:var(--muted);box-shadow:var(--shadow)}
+.chip b{color:var(--fg);margin-left:4px}
+.chip .n{font-weight:800;margin-right:4px}
+.chip.d .n{color:var(--debt)} .chip.p .n{color:var(--pre)}
+.chip[aria-pressed="true"]{outline:2px solid var(--accent)}
+.scard{display:flex;gap:14px;align-items:center;background:var(--surface);border-radius:18px;padding:14px;margin-bottom:10px;width:100%;border:0;text-align:left;box-shadow:var(--shadow)}
+.scard > div{min-width:0}
+.av{width:48px;height:48px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-size:22px;flex:none;font-weight:800}
+.av.ini{font-size:15px}
+.av.sm{width:36px;height:36px;font-size:17px} .av.sm.ini{font-size:12px}
+.av.xs{width:26px;height:26px;font-size:13px} .av.xs.ini{font-size:10px}
+.av.lg{width:84px;height:84px;font-size:40px} .av.lg.ini{font-size:26px}
+.sname{font-weight:700;font-size:16px;overflow-wrap:anywhere}
+.ssub{color:var(--muted);font-size:13px;margin-top:1px}
+.tag{display:inline-block;margin-top:6px;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700}
+.tag.debt{background:var(--debt-bg);color:var(--debt)} .tag.pre{background:var(--pre-bg);color:var(--pre)} .tag.plus{background:var(--paid-bg);color:var(--paid)}
+
+/* sheets */
+.sheet-wrap{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;transition:opacity .2s}
+.sheet{position:relative;width:100%;max-width:560px;max-height:calc(100% - 36px - env(safe-area-inset-top,0px));overflow-y:auto;overscroll-behavior:contain;background:var(--bg);border-radius:22px 22px 0 0;padding-top:8px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));transform:translateY(100%);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+.sheet-wrap.open .scrim{opacity:1}
+.sheet-wrap.open .sheet{transform:none}
+@media (prefers-reduced-motion: reduce){.sheet,.scrim{transition:none}}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 10px}
+.sh-top{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.sh-title{font-weight:800;font-size:17px;flex:1;text-align:center}
+.sh-top .spacer{width:38px;flex:none}
+.panel{background:var(--surface);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.sec{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:18px 4px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hero{text-align:center;margin-bottom:14px}
+.hero .sname{font-size:20px;margin-top:8px}
+.contacts{display:flex;justify-content:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.contacts a,.contacts span{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:7px 12px;font-weight:700;font-size:13px;text-decoration:none}
+.contacts span{user-select:text}
+.bal{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.bal .lbl{color:var(--muted);font-size:13px;font-weight:600}
+.bal .big{font-size:32px;font-weight:800;line-height:1.1;margin-top:2px}
+.big.pos{color:var(--accent)} .big.neg{color:var(--debt)}
+.topup{display:flex;gap:8px;margin-top:12px}
+.topup input{flex:1}
+.hrow{display:flex;align-items:center;gap:10px;width:100%;background:var(--surface);border:0;border-radius:14px;padding:12px 14px;margin-bottom:8px;text-align:left;box-shadow:var(--shadow)}
+.hrow > div{flex:1;min-width:0}
+.hrow small{display:block;color:var(--muted);font-size:12.5px}
+.hrow .hp{font-weight:700}
+.sti{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:800;font-size:14px}
+.sti.paid{background:var(--paid);color:var(--surface)} .sti.prepaid{background:var(--pre);color:var(--surface)}
+.sti.debt{background:var(--debt);color:var(--surface)} .sti.planned{border:2px solid var(--plan);color:var(--plan)}
+.sti.missed{background:var(--miss);color:var(--surface)} .sti.cancelled{background:var(--canc);color:var(--surface)}
+
+.lhead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:12px}
+.lhead .tr{font-size:26px;font-weight:800}
+.lhead .tot{font-size:24px;font-weight:800;color:var(--accent);text-align:right}
+.lhead small{display:block;color:var(--muted);font-size:12.5px;font-weight:600}
+.stchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.stchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 11px;font-weight:700;font-size:13px;color:var(--muted)}
+.stchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.hint{font-size:12.5px;color:var(--muted);margin:4px 2px 12px}
+.prow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow .pi{flex:1;min-width:0}
+.prow .pi button{border:0;background:none;padding:0;font-weight:700;text-align:left}
+.prow small{display:block;color:var(--muted);font-size:12.5px}
+.prow select{width:auto;padding:6px 8px;font-size:13px;border-radius:10px}
+.sw{position:relative;display:inline-block;width:50px;height:30px;flex:none}
+.sw input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.sw span{position:absolute;inset:0;border-radius:999px;background:var(--surface-2);transition:background .15s;pointer-events:none}
+.sw span::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.sw input:checked + span{background:var(--accent)}
+.sw.gold input:checked + span{background:var(--gold)}
+.sw input:checked + span::after{transform:translateX(20px)}
+.sw input:disabled + span{opacity:.4}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;min-width:0}
+.field > span{font-size:12.5px;color:var(--muted);font-weight:700}
+input,select,textarea{font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);width:100%;min-width:0}
+textarea{min-height:90px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px}
+.btn{border:0;border-radius:14px;padding:13px 16px;font-weight:700;font-size:15px;background:var(--accent);color:var(--accent-fg);width:100%;display:block;text-align:center}
+.btn.ghost{background:var(--surface-2);color:var(--fg)}
+.btn.danger{background:var(--debt-bg);color:var(--debt)}
+.btn.sm{padding:10px 12px;font-size:14px;width:auto}
+.btnrow{display:flex;gap:10px;margin-top:6px}
+.btnrow .btn{flex:1}
+.stack{display:flex;flex-direction:column;gap:10px}
+.picks{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;padding:2px}
+.pick{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.pick input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:var(--accent)}
+.pick .pn{flex:1;font-weight:600;min-width:0;overflow-wrap:anywhere}
+.pick .pp{width:96px;flex:none;padding:7px 9px;font-size:15px}
+.pick .pp[hidden]{display:none}
+.emojis{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.emojis label{position:relative;aspect-ratio:1;display:grid;place-items:center;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:20px;cursor:pointer}
+.emojis input{position:absolute;opacity:0}
+.emojis input:checked + i{position:absolute;inset:-1px;border-radius:12px;border:2px solid var(--accent)}
+.emojis .ini{font-size:11px;font-weight:800;color:var(--muted)}
+.err{color:var(--debt);font-size:13px;font-weight:600;min-height:1em;margin:0 0 8px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
+.setrow > div{min-width:0}
+.setrow small{display:block;color:var(--muted);font-size:12.5px}
+
+/* stats */
+.donut{display:block;margin:0 auto;width:210px;max-width:100%}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.lg{display:flex;align-items:center;gap:7px;background:var(--surface);border-radius:999px;padding:8px 12px;box-shadow:var(--shadow);font-size:13px;min-width:0}
+.lg span{color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg b{white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.center-pill{display:flex;justify-content:center;margin-top:10px}
+.center-pill span{background:var(--miss-bg);color:var(--miss);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px}
+.rank{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow);width:100%;border:0;text-align:left}
+.rank > div{flex:1;min-width:0}
+.rank .rv{text-align:right;font-weight:800}
+.rank small{display:block;color:var(--muted);font-weight:600;font-size:12px}
+.monthnav{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.monthnav b{flex:1;font-size:16px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center}
+.cal .wd{font-size:10.5px;font-weight:700;color:var(--muted)}
+.cal .d{aspect-ratio:1;display:grid;place-items:center;border-radius:50%;font-weight:700;font-size:13px;max-width:44px;margin:0 auto;width:100%}
+.cal .d.paid{background:var(--paid);color:var(--bg)} .cal .d.debt{background:var(--debt);color:var(--bg)}
+.cal .d.planned{background:var(--plan);color:var(--bg)} .cal .d.prepaid{background:var(--pre);color:var(--bg)}
+.cal .d.missed{background:var(--miss);color:var(--bg)} .cal .d.cancelled{background:var(--canc);color:var(--bg)}
+.cal .d.today{outline:2px solid var(--accent);outline-offset:1px}
+.leg2{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:13px;font-weight:600}
+.leg2 span{display:inline-flex;align-items:center;gap:6px}
+.earn{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.earn .v{font-size:22px;font-weight:800}
+.earn small{display:block;color:var(--muted);font-size:12.5px;font-weight:600}
+.up{color:var(--paid)} .down{color:var(--debt)}
+
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s,transform .2s;z-index:80;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* forms in the iOS grouped style */
+.fhead{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.fhead .sh-title{flex:1;text-align:center;font-weight:800;font-size:17px;min-width:0}
+.fbtn{border:0;border-radius:999px;padding:9px 15px;font-weight:700;font-size:15px;background:var(--surface);color:var(--accent);box-shadow:var(--shadow);flex:none}
+.fbtn.primary{background:var(--accent);color:var(--accent-fg)}
+.fbtn:disabled{opacity:.4;cursor:default}
+.group{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:0 16px;margin-bottom:14px}
+.group > * + *:not(.ghint){border-top:1px solid var(--line)}
+.grow{display:flex;align-items:center;gap:12px;min-height:54px;padding:8px 0}
+.grow.wrap2{flex-wrap:wrap;padding-block:12px}
+.grow > .gl{flex:1;font-weight:600;min-width:0;overflow-wrap:anywhere}
+.gicon{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+input.bare,textarea.bare{border:0;background:transparent;padding:0;font-size:17px;font-weight:600;color:var(--fg);flex:1;min-width:0;outline:none;border-radius:0;width:100%}
+.bare::placeholder{color:var(--muted);font-weight:600}
+input.bare.big{font-size:18px;padding-block:14px}
+textarea.note{font-family:var(--f-body);font-size:15px;font-weight:500;min-height:84px;padding-block:14px;resize:vertical}
+.pricerow{flex-basis:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding-left:48px}
+.bignum{display:inline-flex;align-items:baseline;gap:4px}
+.bignum input{border:0;background:transparent;padding:0;width:4.4ch;text-align:right;font-size:30px;font-weight:800;color:var(--accent);outline:none;font-variant-numeric:tabular-nums}
+.bignum span{font-size:20px;font-weight:800;color:var(--muted)}
+.stepper{display:flex;flex-direction:column;gap:3px}
+.stepper button{border:0;background:var(--accent-soft);color:var(--accent);width:32px;height:21px;border-radius:7px;font-size:10px;line-height:1;display:grid;place-items:center;padding:0}
+.durs{display:flex;gap:6px;padding:12px 0;flex-wrap:wrap}
+.durs button{flex:1 1 0;min-width:58px;border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:9px 4px;font-weight:700;font-size:14px;color:var(--fg)}
+.durs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+input.pillin,select.pillin{border:0;background:var(--surface-2);border-radius:999px;padding:8px 14px;font-weight:700;font-size:16px;width:auto;color:var(--fg);flex:none}
+input.pillin.num{width:96px;text-align:center}
+.ghint{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:13px;font-weight:600;padding:0 0 12px;margin-top:-6px}
+.avatar-edit{position:relative;width:96px;height:96px;margin:0 auto 16px}
+.avatar-edit .av{width:96px;height:96px;font-size:44px}
+.avatar-edit .av.ini{font-size:30px}
+.av.ghost{background:var(--accent-soft);color:var(--accent)}
+.avatar-edit .badge{position:absolute;right:-2px;bottom:-2px;width:36px;height:36px;border-radius:50%;border:3px solid var(--bg);background:var(--surface);color:var(--accent);display:grid;place-items:center;padding:0;box-shadow:var(--shadow)}
+.emojis2{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;padding:12px 0}
+.emojis2 button{aspect-ratio:1;border:1px solid var(--line);background:var(--surface-2);border-radius:12px;font-size:20px;padding:0;min-width:0}
+.emojis2 button[aria-pressed="true"]{border:2px solid var(--accent);background:var(--accent-soft)}
+.emojis2 .ini2{font-size:11px;font-weight:800;color:var(--muted)}
+.ctabs{display:flex;gap:8px;padding:12px 0}
+.ctabs button{flex:1;min-width:0;height:44px;border-radius:999px;border:0;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;position:relative;padding:0}
+.ctabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.ctabs button.has::after{content:"";position:absolute;top:6px;right:calc(50% - 16px);width:7px;height:7px;border-radius:50%;background:var(--gold)}
+.cin{display:flex;align-items:center;gap:8px;padding:14px 0}
+.cin b{color:var(--muted);font-weight:700;font-size:17px}
+.wds{display:flex;gap:5px;padding:12px 0}
+.wds button{flex:1;min-width:0;height:40px;border-radius:999px;border:0;background:var(--accent-soft);color:var(--fg);font-weight:700;font-size:12.5px;padding:0}
+.wds button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.rmbtn{border:0;width:28px;height:28px;border-radius:50%;background:var(--surface-2);color:var(--muted);font-weight:800;display:grid;place-items:center;font-size:18px;padding:0;flex:none}
+.addrow{display:flex;align-items:center;gap:12px;border:0;background:none;color:var(--accent);font-weight:700;padding:14px 0;width:100%;text-align:left}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:700;padding:6px 4px 12px;display:flex;align-items:center;gap:10px}
+.viewbtn{position:fixed;left:max(18px,env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;border:0;background:var(--surface);color:var(--accent);display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,0,0,.16);z-index:21}
+.cal button.d{border:0;padding:0;color:var(--bg);font:inherit;font-weight:700;font-size:13px}
+.cal .d.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--fg)}
+.dayrows{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.dayrow{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:14px;padding:10px 12px}
+.dr-main{flex:1;min-width:0;border:0;background:none;padding:0;text-align:left}
+.dr-main small{display:block;color:var(--muted);font-size:12.5px}
+.pcirc{width:32px;height:32px;border-radius:50%;border:2px solid var(--muted);background:transparent;display:grid;place-items:center;color:var(--surface);font-weight:800;padding:0;flex:none}
+.pcirc.on{background:var(--gold);border-color:var(--gold)}
+.emptybig{text-align:center;color:var(--muted);padding:48px 0;font-weight:600}
+.emptybig p{margin:10px 0 0}
+a.btn{text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px}
+.msgbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:8px}
+</style>
+
+</head>
+<body>
+<div class="wrap"><main id="view"></main></div>
+<nav class="tabbar" aria-label="Розділи">
+  <button class="tab" data-act="tab" data-t="sched" id="tab-sched">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Розклад</button>
+  <button class="tab" data-act="tab" data-t="students" id="tab-students">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14.5c2.4 0 4.1 1.5 4.6 4"/></svg>Учні</button>
+</nav>
+<button class="fab" data-act="fab" aria-label="Додати">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<button class="viewbtn" data-act="toggleView" aria-label="Показати списком"></button>
+<div id="sheets"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+const KEY='tutor-journal-v1';
+const MON_G=['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+const MON_N=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const WD=['ПН','ВТ','СР','ЧТ','ПТ','СБ','НД'];
+const WD_L=['понеділок','вівторок','середа','четвер','пʼятниця','субота','неділя'];
+const EMOJI=['🌸','📚','🐱','🎧','🎸','🌿','🏀','🎨','🚀','🦄','🐧','⚽','🎹','🦊','🌻','🧩','🐢','🍀','🎯','🔭','🦉','🐬','🍎','⭐','🐼','🌙','🎻','🏐','🦋','🐝','🍓'];
+const ST_LABEL={paid:'Оплачено',debt:'Борг',prepaid:'Оплачено наперед',planned:'Заплановано',missed:'Пропущено',cancelled:'Скасовано'};
+const ST_ICON={paid:'✓',prepaid:'✓',debt:'!',planned:'',missed:'–',cancelled:'×'};
+const DURS=[30,45,60,75,90,120];
+const MON_S=['січ.','лют.','бер.','квіт.','трав.','черв.','лип.','серп.','вер.','жовт.','лист.','груд.'];
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>Math.round(n).toLocaleString('uk-UA')+' ₴';
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const pd=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const mon=d=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());return addD(x,-((x.getDay()+6)%7))};
+const toMin=t=>{const [h,m]=t.split(':').map(Number);return h*60+m};
+const fmtT=m=>pad(Math.floor(m/60))+':'+pad(m%60);
+const lStart=l=>{const d=pd(l.date);const m=toMin(l.time);d.setHours(Math.floor(m/60),m%60,0,0);return d};
+const dmy=s=>{const d=pd(s);return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`};
+function plural(n,a,b,c){n=Math.abs(n)%100;const n1=n%10;if(n>10&&n<20)return c;if(n1>1&&n1<5)return b;if(n1===1)return a;return c}
+const nLessons=n=>`${n} ${plural(n,'заняття','заняття','занять')}`;
+const nPupils=n=>`${n} ${plural(n,'учень','учні','учнів')}`;
+const shortName=s=>{const p=s.trim().split(/\s+/);return p.length>1?`${p[0]} ${p[1][0]}.`:p[0]};
+const initials=s=>s.trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+const av=(s,cls='')=>s.emoji?`<span class="av ${cls}" aria-hidden="true">${s.emoji}</span>`:`<span class="av ini ${cls}" aria-hidden="true">${esc(initials(s.name))}</span>`;
+const stu=id=>S.students.find(s=>s.id===id);
+function dayWord(d,now){const diff=Math.round((pd(ymd(d))-pd(ymd(now)))/864e5);if(diff===0)return 'сьогодні';if(diff===1)return 'завтра';if(diff===-1)return 'вчора';return `${WD_L[(d.getDay()+6)%7]}, ${d.getDate()} ${MON_G[d.getMonth()]}`}
+function weekLabel(w){const e=addD(w,6);if(w.getMonth()===e.getMonth())return `${w.getDate()}–${e.getDate()} ${MON_G[e.getMonth()]} ${e.getFullYear()} р.`;return `${w.getDate()} ${MON_G[w.getMonth()]} – ${e.getDate()} ${MON_G[e.getMonth()]}`}
+const weekShort=w=>{const e=addD(w,6);return w.getMonth()===e.getMonth()?`${w.getDate()}–${e.getDate()} ${MON_S[e.getMonth()]}`:`${w.getDate()} ${MON_S[w.getMonth()]} – ${e.getDate()} ${MON_S[e.getMonth()]}`};
+const ICON={
+  left:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  right:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+  close:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  gear:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>',
+  sort:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3.5 7.5L7 4l3.5 3.5M17 20V4M13.5 16.5L17 20l3.5-3.5"/></svg>',
+  edit:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>',
+  stats:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>'
+};
+
+Object.assign(ICON,{
+  smile:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.8 2 5.2 2 7 0"/><path d="M9 9.5h.01M15 9.5h.01" stroke-width="3"/></svg>',
+  person:'<svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4 20.5c.8-4 4-6 8-6s7.2 2 8 6z"/></svg>',
+  group:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="8.5" r="3.3"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M2.5 19c.6-3.3 3.1-5 6.5-5s5.9 1.7 6.5 5z"/><path d="M15.6 13.7c2.9-.3 5.2 1.1 5.9 4.3h-4.8c-.2-1.7-.6-3.1-1.1-4.3z"/></svg>',
+  addUser:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 3.2-5.5 6.5-5.5 1.3 0 2.5.3 3.5.8"/><path d="M18 14v6M15 17h6"/></svg>',
+  clock:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  plusc:'<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 7.5v9M7.5 12h9" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  history:'<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>',
+  list:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h11"/></svg>',
+  gridI:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>'
+});
+const CIP={
+  tg:'<path fill="currentColor" stroke="none" d="M21.6 3.2 2.4 10.6c-1 .4-1 1.1-.2 1.4l4.9 1.5 1.9 5.8c.2.6.4.8.8.8.4 0 .6-.2.9-.5l2.4-2.3 4.9 3.6c.9.5 1.5.2 1.8-.8L22.9 4.6c.3-1.3-.5-1.9-1.3-1.4zM9.3 13.4l8.6-5.5c.4-.3.8-.1.5.2l-7 6.4-.3 3.3z"/>',
+  ig:'<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/>',
+  phone:'<path fill="currentColor" stroke="none" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>',
+  wa:'<path d="M12 3.5a8.5 8.5 0 0 0-7.3 12.9L3.5 20.5l4.2-1.1A8.5 8.5 0 1 0 12 3.5z"/><path d="M9 9.2c.2 2.9 2.6 5.4 5.8 5.8" stroke-width="2.4"/>',
+  email:'<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/>'
+};
+const ci=(k,sz)=>`<svg width="${sz||20}" height="${sz||20}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CIP[k]}</svg>`;
+
+/* ---------- storage ---------- */
+let S, C, storageOK=true;
+function load(){
+  try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r)}catch(e){storageOK=false}
+  if(!S||!Array.isArray(S.students))S=sample();
+  S.settings=Object.assign({chargeMissed:false,dayStart:8,dayEnd:21,view:'grid'},S.settings||{});
+  S.payments=S.payments||[];S.series=S.series||[];S.lessons=S.lessons||[];
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){storageOK=false}}
+
+/* ---------- core: statuses and FIFO payment allocation ---------- */
+function compute(){
+  const now=new Date(), map={}, byS={}, bal={};
+  for(const l of S.lessons){
+    const s=lStart(l).getTime(), e=s+l.dur*60000;
+    for(const a of l.att){
+      const st=(a.status&&a.status!=='auto')?a.status:(e<=now?'done':'planned');
+      const charged=st==='done'||(st==='missed'&&S.settings.chargeMissed);
+      const r={l,a,st,charged,t:s,price:+a.price||0,paid:0,state:''};
+      map[l.id+':'+a.sid]=r;(byS[a.sid]=byS[a.sid]||[]).push(r);
+    }
+  }
+  for(const st of S.students){
+    const list=(byS[st.id]||[]).sort((x,y)=>x.t-y.t);
+    const P=S.payments.filter(p=>p.sid===st.id).reduce((s,p)=>s+(+p.amount||0),0);
+    let rem=P, chargedSum=0, preN=0, debtN=0;
+    for(const r of list){
+      if(r.charged||r.st==='planned'){const take=Math.max(0,Math.min(rem,r.price));r.paid=take;rem-=take}
+      if(r.charged){chargedSum+=r.price;r.state=r.paid>=r.price?'paid':'debt';if(r.state==='debt')debtN++}
+      else if(r.st==='planned'){r.state=r.paid>=r.price?'prepaid':'planned';if(r.state==='prepaid')preN++}
+      else r.state=r.st;
+    }
+    bal[st.id]={P,balance:P-chargedSum,preN,debtN,list};
+  }
+  C={map,bal,now};
+}
+function periodStats(from,to){
+  const r={earned:0,expected:0,ahead:0,lost:0,missedN:0,bySt:{}};
+  for(const k in C.map){
+    const x=C.map[k]; if(x.t<from||x.t>=to)continue;
+    const b=r.bySt[x.a.sid]=r.bySt[x.a.sid]||{earned:0,n:0};
+    if(x.charged){r.earned+=x.paid;r.expected+=x.price-x.paid;b.earned+=x.paid;b.n++}
+    else if(x.st==='planned')r.ahead+=x.price;
+    else{r.lost+=x.price;if(x.st==='missed')r.missedN++}
+  }
+  r.total=r.earned+r.expected+r.ahead;return r;
+}
+function lessonState(l){
+  const xs=l.att.map(a=>C.map[l.id+':'+a.sid]).filter(Boolean);const ss=xs.map(x=>x.state);
+  if(!ss.length)return 'planned';
+  if(ss.includes('debt'))return 'debt';
+  if(ss.every(s=>s==='cancelled'))return 'cancelled';
+  if(ss.every(s=>s==='missed'||s==='cancelled'))return 'missed';
+  if(ss.every(s=>s==='prepaid'))return 'prepaid';
+  if(ss.some(s=>s==='planned'||s==='prepaid'))return 'planned';
+  return 'paid';
+}
+function bar(r){
+  const t=r.total||1;if(!r.total)return '<div class="bar"></div>';
+  return `<div class="bar" aria-hidden="true"><i style="width:${r.earned/t*100}%;background:var(--paid)"></i><i style="width:${r.expected/t*100}%;background:var(--debt)"></i><i style="width:${r.ahead/t*100}%;background:var(--plan)"></i></div>`;
+}
+
+/* ---------- UI state ---------- */
+const ui={tab:'sched',week:mon(new Date()),q:'',sort:'name',filter:null};
+const view=$('#view'), sheetsEl=$('#sheets');
+
+function commit(){compute();renderMain();renderSheets();save()}
+
+function renderMain(){
+  $('#tab-sched').setAttribute('aria-current',ui.tab==='sched'?'page':'false');
+  $('#tab-students').setAttribute('aria-current',ui.tab==='students'?'page':'false');
+  $('.fab').setAttribute('aria-label',ui.tab==='sched'?'Додати заняття':'Додати учня');
+  const vb=$('.viewbtn'),g=S.settings.view==='grid';vb.hidden=ui.tab!=='sched';vb.innerHTML=g?ICON.list:ICON.gridI;vb.setAttribute('aria-label',g?'Показати списком':'Показати сіткою');
+  if(ui.tab==='sched')view.innerHTML=schedHTML();
+  else{
+    if(!view.querySelector('#slist'))view.innerHTML=studentsShell();
+    renderStudentList();
+  }
+}
+
+/* ---------- schedule ---------- */
+function schedHTML(){
+  const now=C.now, w=ui.week, wTo=addD(w,7);
+  const ws=periodStats(+w,+wTo);
+  const inWeek=now>=w&&now<wTo;
+  const mRef=inWeek?now:addD(w,3);
+  const mFrom=new Date(mRef.getFullYear(),mRef.getMonth(),1), mTo=new Date(mRef.getFullYear(),mRef.getMonth()+1,1);
+  const ms=periodStats(+mFrom,+mTo);
+  let next=null;
+  for(const k in C.map){const x=C.map[k];if(x.st==='planned'&&x.t+x.l.dur*60000>now&&(!next||x.t<next.t))next=x}
+  let nextTxt='Наступних занять немає';
+  if(next){const names=next.l.att.length>1?nPupils(next.l.att.length):esc((stu(next.a.sid)||{}).name||'');nextTxt=`Наступне: ${next.l.time} ${dayWord(new Date(next.t),now)} · ${names}`}
+  const sampleNote=S.sample?`<div class="note"><span style="flex:1;min-width:200px">Це приклад із вигаданими учнями, щоб показати, як усе працює.</span><button data-act="startClean">Почати з чистого аркуша</button></div>`:'';
+  const storeNote=storageOK?'':`<div class="note">Браузер не дозволяє зберігати дані. Зміни зникнуть після закриття сторінки.</div>`;
+  return `${sampleNote}${storeNote}
+  <section class="sum">
+    <button class="sumcard" data-act="stats" data-mode="week"><div class="sumlabel">Тиждень · ${weekShort(w)}</div><div class="sumval">${money(ws.earned)} <small>із ${money(ws.total)}</small></div>${bar(ws)}</button>
+    <button class="sumcard" data-act="stats" data-mode="month" data-y="${mFrom.getFullYear()}" data-m="${mFrom.getMonth()}"><div class="sumlabel">${MON_N[mFrom.getMonth()]} ${mFrom.getFullYear()} р.</div><div class="sumval">${money(ms.earned)} <small>із ${money(ms.total)}</small></div>${bar(ms)}</button>
+  </section>
+  <div class="weeknav">
+    <button class="iconbtn" data-act="week" data-d="-7" aria-label="Попередній тиждень">${ICON.left}</button>
+    <div class="wtitle">${weekLabel(w)}</div>
+    <button class="iconbtn" data-act="week" data-d="7" aria-label="Наступний тиждень">${ICON.right}</button>
+    ${inWeek?'':'<button class="pillbtn" data-act="week" data-d="0">Сьогодні</button>'}
+  </div>
+  <div class="next">${nextTxt}</div>
+  <div style="height:12px"></div>
+  ${S.settings.view==='grid'?gridHTML():listHTML()}`;
+}
+
+function gridHTML(){
+  const days=[...Array(7)].map((_,i)=>addD(ui.week,i)), today=ymd(C.now);
+  let h0=+S.settings.dayStart, h1=+S.settings.dayEnd;
+  const byDay=days.map(d=>S.lessons.filter(l=>l.date===ymd(d)).sort((a,b)=>toMin(a.time)-toMin(b.time)));
+  byDay.flat().forEach(l=>{const s=toMin(l.time);h0=Math.min(h0,Math.floor(s/60));h1=Math.max(h1,Math.ceil((s+l.dur)/60))});
+  const PX=56, H=(h1-h0)*PX;
+  let lines='',times='';
+  for(let h=h0;h<=h1;h++){lines+=`<div class="hl" style="top:${(h-h0)*PX}px"></div>`;if(h>h0&&h<h1)times+=`<span style="top:${(h-h0)*PX}px">${h}</span>`}
+  const cols=days.map((d,i)=>{
+    const ls=byDay[i];const pos=[];let cl=[],clEnd=-1,lanes=[];
+    const flush=()=>{const n=lanes.length;cl.forEach(p=>p.n=n);cl=[];lanes=[]};
+    ls.forEach(l=>{const s=toMin(l.time),e=s+l.dur;if(s>=clEnd)flush();let li=lanes.findIndex(x=>x<=s);if(li<0){li=lanes.length;lanes.push(e)}else lanes[li]=e;const p={l,lane:li,n:1};cl.push(p);pos.push(p);clEnd=Math.max(clEnd,e)});
+    flush();
+    const blocks=pos.map(({l,lane,n})=>{
+      const top=(toMin(l.time)-h0*60)/60*PX, hgt=Math.max(l.dur/60*PX-2,26);
+      const st=lessonState(l), grp=l.att.length>1;
+      const nm=grp?nPupils(l.att.length):esc(shortName((stu(l.att[0].sid)||{name:'?'}).name));
+      return `<button class="blk s-${st}" style="top:${top+1}px;height:${hgt}px;left:calc(${lane/n*100}% + 2px);width:calc(${100/n}% - 4px)" data-act="lesson" data-id="${l.id}" aria-label="${l.time}, ${esc(grp?'групове заняття':nm)}, ${ST_LABEL[st]}"><span class="bt">${l.time}</span><span class="bn">${nm}</span>${grp?'<i class="gbar" style="background:'+esc(l.color||'var(--accent)')+'"></i>':''}</button>`;
+    }).join('');
+    let nowl='';
+    if(ymd(d)===today){const nm=C.now.getHours()*60+C.now.getMinutes();if(nm>=h0*60&&nm<=h1*60)nowl=`<div class="nowline" style="top:${(nm-h0*60)/60*PX}px"></div>`}
+    return `<div class="g-col${ymd(d)===today?' today':''}" data-act="newAt" data-date="${ymd(d)}" data-h0="${h0}">${blocks}${nowl}</div>`;
+  }).join('');
+  const head=days.map((d,i)=>`<button class="g-day${ymd(d)===today?' today':''}" data-act="newAt" data-date="${ymd(d)}" data-time="" aria-label="Додати заняття на ${d.getDate()} ${MON_G[d.getMonth()]}"><small>${WD[i]}</small><b>${d.getDate()}</b></button>`).join('');
+  return `<div class="grid"><div class="g-head"><div></div>${head}</div><div class="g-body" style="height:${H}px">${lines}<div class="g-times">${times}</div>${cols}</div></div>
+  <p class="hint" style="text-align:center;margin-top:10px">Торкніться вільного місця в сітці, щоб додати заняття на цей час.</p>`;
+}
+
+function listHTML(){
+  const days=[...Array(7)].map((_,i)=>addD(ui.week,i)), today=ymd(C.now);
+  let out='';
+  days.forEach(d=>{
+    const ls=S.lessons.filter(l=>l.date===ymd(d)).sort((a,b)=>toMin(a.time)-toMin(b.time));
+    if(!ls.length)return;
+    const isT=ymd(d)===today, past=ymd(d)<today;
+    out+=`<div><span class="dayhdr${past?' past':''}">${d.getDate()} ${MON_G[d.getMonth()]}${isT?' · сьогодні':' · '+WD_L[(d.getDay()+6)%7]}</span></div>`;
+    ls.forEach(l=>{
+      const st=lessonState(l), grp=l.att.length>1;
+      const s0=stu(l.att[0].sid)||{name:'?'};
+      const nm=grp?`Група · ${nPupils(l.att.length)}`:`${s0.emoji?s0.emoji+' ':''}${esc(s0.name)}`;
+      const sum=l.att.reduce((t,a)=>t+(+a.price||0),0);
+      out+=`<button class="lrow s-${st}" data-act="lesson" data-id="${l.id}"><span class="lt">${l.time}</span><span class="ln">${nm}</span><span class="lp">${money(sum)}<br>${ST_LABEL[st]}</span></button>`;
+    });
+  });
+  return out||`<div class="empty"><p>На цьому тижні занять немає.</p><button class="btn sm" data-act="fab" style="margin:0 auto">Додати заняття</button></div>`;
+}
+
+/* ---------- students ---------- */
+function studentsShell(){
+  return `<div class="toolbar">
+    <button class="iconbtn solid" data-act="sort" aria-label="Сортування">${ICON.sort}</button>
+    <label class="search">${ICON.search}<input id="q" type="search" placeholder="Пошук учня" autocomplete="off" value="${esc(ui.q)}"></label>
+    <button class="iconbtn solid" data-act="settings" aria-label="Налаштування">${ICON.gear}</button>
+  </div><div id="schips"></div><div id="slist"></div>`;
+}
+function renderStudentList(){
+  let debtN=0,debtSum=0,preN=0,preSum=0;
+  S.students.forEach(s=>{const b=C.bal[s.id];if(b.balance<0){debtN++;debtSum-=b.balance}else if(b.balance>0){preN++;preSum+=b.balance}});
+  const sortLbl={name:'за іменем',debt:'спершу боржники',price:'за ціною'}[ui.sort];
+  $('#schips').innerHTML=`<div class="chips">
+    <button class="chip d" data-act="filter" data-f="debt" aria-pressed="${ui.filter==='debt'}"><span class="n">${debtN}</span>Винні<b>${money(debtSum)}</b></button>
+    <button class="chip p" data-act="filter" data-f="pre" aria-pressed="${ui.filter==='pre'}"><span class="n">${preN}</span>Наперед<b>${money(preSum)}</b></button>
+  </div><p class="hint">Сортування: ${sortLbl}</p>`;
+  const q=ui.q.trim().toLowerCase();
+  let list=S.students.filter(s=>!q||s.name.toLowerCase().includes(q));
+  if(ui.filter==='debt')list=list.filter(s=>C.bal[s.id].balance<0);
+  if(ui.filter==='pre')list=list.filter(s=>C.bal[s.id].balance>0);
+  list.sort((a,b)=>ui.sort==='debt'?C.bal[a.id].balance-C.bal[b.id].balance:ui.sort==='price'?b.price-a.price:a.name.localeCompare(b.name,'uk'));
+  $('#slist').innerHTML=list.map(s=>{
+    const b=C.bal[s.id];let tag='';
+    if(b.balance<0)tag=`<span class="tag debt">Борг ${money(-b.balance)}${b.debtN?' · '+nLessons(b.debtN):''}</span>`;
+    else if(b.preN)tag=`<span class="tag pre">Наперед ${nLessons(b.preN)}</span>`;
+    else if(b.balance>0)tag=`<span class="tag plus">+${money(b.balance)}</span>`;
+    return `<button class="scard" data-act="student" data-id="${s.id}">${av(s)}<div><div class="sname">${esc(s.name)}</div><div class="ssub">${money(s.price)} / ${s.dur} хв</div>${s.note?`<div class="ssub">${esc(s.note)}</div>`:''}${tag}</div></button>`;
+  }).join('')||`<div class="empty"><p>${S.students.length?'Нікого не знайдено.':'Ще немає жодного учня.'}</p>${S.students.length?'':'<button class="btn sm" data-act="newStudent" style="margin:0 auto">Додати учня</button>'}</div>`;
+}
+
+/* ---------- sheets ---------- */
+const stack=[];
+function openSheet(fn,opts={}){
+  const wrap=document.createElement('div');wrap.className='sheet-wrap';
+  wrap.innerHTML='<div class="scrim" data-act="closeSheet"></div><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div class="sheet-body"></div></div>';
+  sheetsEl.appendChild(wrap);
+  const it={fn,el:wrap,live:opts.live!==false,ctx:opts.ctx||{},mount:opts.mount};
+  stack.push(it);fill(it);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>wrap.classList.add('open')));
+  return it;
+}
+function fill(it){const html=it.fn(it);if(html==null){closeSheet(it);return}const body=it.el.querySelector('.sheet-body');body.innerHTML=html;if(it.mount)it.mount(body,it)}
+function renderSheets(){stack.slice().forEach(it=>{if(it.live)fill(it)})}
+function closeSheet(it){it=it||stack[stack.length-1];if(!it)return;const i=stack.indexOf(it);if(i>=0)stack.splice(i,1);it.el.classList.remove('open');setTimeout(()=>it.el.remove(),260)}
+const itemOf=el=>{const w=el.closest('.sheet-wrap');return stack.find(s=>s.el===w)};
+const top=(title,right='')=>`<div class="sh-top"><button class="iconbtn solid" data-act="closeSheet" aria-label="Закрити">${ICON.close}</button><div class="sh-title">${title}</div>${right||'<span class="spacer"></span>'}</div>`;
+
+function confirmSheet(title,text,btns){
+  openSheet(()=>`${top(esc(title))}<p class="muted" style="text-align:center;margin:0 0 16px">${esc(text)}</p><div class="stack">${btns.map((b,i)=>`<button class="btn ${b.cls||''}" data-act="cfm" data-i="${i}">${esc(b.label)}</button>`).join('')}<button class="btn ghost" data-act="closeSheet">Скасувати</button></div>`,{live:false,ctx:{btns}});
+}
+let toastT;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
+
+/* lesson details */
+function lessonSheet(id){
+  openSheet(()=>{
+    const l=S.lessons.find(x=>x.id===id);if(!l)return null;
+    const s=lStart(l), grp=l.att.length>1;
+    const recs=l.att.map(a=>({a,st:stu(a.sid),x:C.map[l.id+':'+a.sid]})).filter(r=>r.st&&r.x);
+    const total=recs.reduce((t,r)=>t+((r.x.charged||r.x.st==='planned')?r.a.price:0),0);
+    const sts=new Set(l.att.map(a=>a.status||'auto'));const cur=sts.size===1?[...sts][0]:null;
+    const chip=(v,lbl)=>`<button class="stchip" data-act="setStatus" data-id="${l.id}" data-s="${v}" aria-pressed="${cur===v}">${lbl}</button>`;
+    const rows=recs.map(({a,st,x})=>{
+      const lbl=x.state==='debt'&&x.paid>0?`борг ${money(x.price-x.paid)}`:ST_LABEL[x.state];
+      const can=x.charged||x.st==='planned';
+      const sel=grp?`<select data-change="att" data-l="${l.id}" data-s="${a.sid}" aria-label="Статус для ${esc(st.name)}">${[['auto','За розкладом'],['done','Був'],['missed','Пропустив'],['cancelled','Скасовано']].map(([v,t])=>`<option value="${v}"${(a.status||'auto')===v?' selected':''}>${t}</option>`).join('')}</select>`:'';
+      return `<div class="prow">${av(st,'sm')}<div class="pi"><button data-act="student" data-id="${st.id}">${esc(st.name)}</button><small>${money(a.price)} · ${lbl}</small></div>${sel}<label class="sw gold" title="Оплачено"><input type="checkbox" aria-label="Оплачено: ${esc(st.name)}" data-change="paid" data-l="${l.id}" data-s="${a.sid}"${(x.state==='paid'||x.state==='prepaid')?' checked':''}${can?'':' disabled'}><span></span></label></div>`;
+    }).join('');
+    return `${top(esc(l.name||(grp?'Групове заняття':'Заняття')),`<button class="iconbtn solid" data-act="editLesson" data-id="${l.id}" aria-label="Змінити">${ICON.edit}</button>`)}
+    <div class="lhead"><div><div class="tr">${l.time} – ${fmtT(toMin(l.time)+l.dur)}</div><small>${(w=>['сьогодні','завтра','вчора'].includes(w)?w+', '+s.getDate()+' '+MON_G[s.getMonth()]:w)(dayWord(s,C.now))}${grp?' · '+nPupils(l.att.length):''} · ${l.dur} хв</small></div><div><div class="tot">${money(total)}</div><small>${grp?'Загальна сума':'Вартість'}</small></div></div>
+    <div class="stchips">${chip('auto','За розкладом')}${chip('done','Проведено')}${chip('missed','Пропущено')}${chip('cancelled','Скасовано')}</div>
+    <p class="hint">«За розкладом»: після завершення заняття воно автоматично вважається проведеним. ${S.settings.chargeMissed?'Пропущене заняття оплачується.':'Пропущене заняття не оплачується.'}</p>
+    <div class="sec"><span>Учні</span><span>Оплачено</span></div>
+    <div class="panel" style="padding-block:4px">${rows}</div>
+    ${l.note?`<div class="panel"><div class="muted" style="font-size:12.5px;font-weight:700">Нотатка</div><div style="white-space:pre-wrap;margin-top:4px">${esc(l.note)}</div></div>`:''}
+    ${l.series?'<p class="hint">Заняття повторюється щотижня.</p>':''}
+    <div class="btnrow"><button class="btn ghost" data-act="editLesson" data-id="${l.id}">Змінити</button><button class="btn danger" data-act="delLesson" data-id="${l.id}">Видалити</button></div>`;
+  });
+}
+
+/* lesson form */
+const DCH=[45,60,90,120];
+const durChips=(cur,other)=>DCH.map(d=>`<button type="button" data-f="dur" data-v="${d}" aria-pressed="${!other&&cur===d}">${d} хв</button>`).join('')+`<button type="button" data-f="dur" data-v="x" aria-pressed="${!!other||!DCH.includes(cur)}">Інша</button>`;
+function pickStudent(exclude,cb){
+  const list=S.students.filter(s=>!exclude.includes(s.id)).sort((a,b)=>a.name.localeCompare(b.name,'uk'));
+  if(!list.length){toast('Усіх учнів уже додано');return}
+  openSheet(()=>`${top('Виберіть учня')}<label class="search" style="margin-bottom:12px">${ICON.search}<input id="pk-q" type="search" placeholder="Пошук" autocomplete="off"></label><div>${list.map(s=>`<button type="button" class="scard" data-pick="${s.id}" data-n="${esc(s.name.toLowerCase())}">${av(s,'sm')}<div><div class="sname">${esc(s.name)}</div><div class="ssub">${money(s.price)} · ${s.dur} хв</div></div></button>`).join('')}</div>`,{live:false,mount:(b,it)=>{
+    b.addEventListener('click',e=>{const t=e.target.closest('[data-pick]');if(!t)return;closeSheet(it);cb(stu(t.dataset.pick))});
+    b.querySelector('#pk-q').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();b.querySelectorAll('[data-pick]').forEach(x=>x.hidden=!!q&&!x.dataset.n.includes(q))});
+  }});
+}
+function lessonForm(o){
+  if(!S.students.length){toast('Спочатку додайте учня');newStudent();return}
+  const l=o.id?S.lessons.find(x=>x.id===o.id):null;
+  const ser=l&&l.series?S.series.find(s=>s.id===l.series):null;
+  const s0=o.sid?stu(o.sid):null;
+  const f={att:l?l.att.map(a=>Object.assign({},a)):(s0?[{sid:s0.id,price:s0.price,status:'auto'}]:[]),
+    name:l?(l.name||''):'',date:l?l.date:(o.date||ymd(C.now)),time:l?l.time:(o.time||'16:00'),
+    dur:l?l.dur:(s0?s0.dur:60),rep:!l,paid:false,note:l?(l.note||''):'',noteOpen:false,scope:'one'};
+  f.other=!DCH.includes(f.dur);
+  f.wds=[(pd(f.date).getDay()+6)%7];
+  const endTxt=()=>`Заняття закінчиться о ${fmtT(((toMin(f.time||'00:00')+(+f.dur||0))%1440+1440)%1440)}`;
+  const html=()=>{
+    const grp=f.att.length>1;
+    let payHint='';
+    if(f.rep)payHint=grp?'Для всіх учнів групи, лише перше заняття.':'Лише для першого заняття.';
+    else if(grp)payHint='Застосовується до всіх учнів групи.';
+    return `<form id="lf" novalidate>
+    <div class="fhead"><button type="button" class="fbtn" data-act="closeSheet">Скасувати</button><div class="sh-title">${l?'Змінити заняття':'Нове заняття'}</div><button class="fbtn primary" type="submit"${f.att.length?'':' disabled'}>Зберегти</button></div>
+    <div class="group">
+      ${grp?`<div class="grow"><span class="gicon">${ICON.group}</span><input class="bare" id="lf-name" placeholder="Назва групи (необовʼязково)" value="${esc(f.name)}" autocomplete="off" aria-label="Назва групи"></div>`:''}
+      ${f.att.map((a,i)=>{const s=stu(a.sid);if(!s)return '';return `<div class="grow wrap2">${av(s,'sm')}<span class="gl">${esc(s.name)}</span>${grp?`<button type="button" class="rmbtn" data-f="rm" data-i="${i}" aria-label="Прибрати: ${esc(s.name)}">−</button>`:''}<div class="pricerow"><span class="muted">${grp?'Ціна за учня':'Ціна заняття'}</span><span class="bignum"><input type="number" inputmode="numeric" min="0" step="10" data-f="price" data-i="${i}" id="lp-${s.id}" value="${esc(a.price)}" aria-label="Ціна для ${esc(s.name)}"><span>₴</span></span></div></div>`}).join('')}
+      <button type="button" class="addrow" data-f="add">${ICON.addUser}<span>${f.att.length?'Додати учня (групове заняття)':'Вибрати учня'}</span></button>
+    </div>
+    <div class="group">
+      <div class="grow"><span class="gl">Дата</span><input type="date" class="pillin" id="lf-date" value="${f.date}" aria-label="Дата"></div>
+      <div class="grow"><span class="gl">Час</span><input type="time" class="pillin" id="lf-time" value="${f.time}" step="300" aria-label="Час"></div>
+      <div class="ghint">${ICON.clock}<span id="lf-end">${endTxt()}</span></div>
+      <div class="durs">${durChips(f.dur,f.other)}</div>
+      ${f.other?`<div class="grow"><span class="gl">Тривалість, хв</span><input type="number" inputmode="numeric" min="5" step="5" class="pillin num" data-f="durx" id="lf-durx" value="${f.dur||''}" aria-label="Тривалість у хвилинах"></div>`:''}
+      ${!l?`<div class="grow"><span class="gl">Повторювати щотижня</span><label class="sw"><input type="checkbox" data-f="rep" id="lf-rep"${f.rep?' checked':''} aria-label="Повторювати щотижня"><span></span></label></div>${f.rep?`<div class="wds" role="group" aria-label="Дні тижня">${WD.map((w,i)=>`<button type="button" data-f="wd" data-i="${i}" aria-pressed="${f.wds.includes(i)}">${w}</button>`).join('')}</div>`:''}`
+        :(l.series?`<div class="grow"><span class="gl">Застосувати до</span><select class="pillin" id="lf-scope" aria-label="Застосувати зміни"><option value="one"${f.scope==='one'?' selected':''}>Лише цього</option><option value="next"${f.scope==='next'?' selected':''}>Цього й наступних</option></select></div>`:'')}
+    </div>
+    ${!l?`<div class="group"><div class="grow"><span class="gl">Оплачено</span><label class="sw gold"><input type="checkbox" data-f="paid" id="lf-paid"${f.paid?' checked':''} aria-label="Оплачено"><span></span></label></div></div>${payHint?`<p class="hint" style="margin-top:-6px">${payHint}</p>`:''}`:''}
+    ${(f.noteOpen||f.note)?`<div class="group"><textarea class="bare note" id="lf-note" placeholder="Нотатка до заняття" aria-label="Нотатка">${esc(f.note)}</textarea></div>`:`<button type="button" class="linkbtn" data-f="note">${ICON.plusc}Додати нотатку</button>`}
+    <p class="err" id="lf-err"></p>
+    </form>`;
+  };
+  const it=openSheet(html,{live:false,mount:b=>{
+    const fm=b.querySelector('#lf');
+    fm.addEventListener('click',e=>{
+      const t=e.target.closest('[data-f]');if(!t||t.tagName==='INPUT')return;
+      const k=t.dataset.f;
+      if(k==='rm'){f.att.splice(+t.dataset.i,1);fill(it)}
+      else if(k==='add')pickStudent(f.att.map(a=>a.sid),s=>{if(!f.att.length&&!l){f.dur=s.dur;f.other=!DCH.includes(s.dur)}f.att.push({sid:s.id,price:s.price,status:'auto'});fill(it)});
+      else if(k==='dur'){if(t.dataset.v==='x')f.other=true;else{f.dur=+t.dataset.v;f.other=false}fill(it);if(f.other){const x=it.el.querySelector('#lf-durx');if(x)x.focus()}}
+      else if(k==='wd'){const i=+t.dataset.i;f.wds=f.wds.includes(i)?f.wds.filter(x=>x!==i):f.wds.concat(i);fill(it)}
+      else if(k==='note'){f.noteOpen=true;fill(it);const n=it.el.querySelector('#lf-note');if(n)n.focus()}
+    });
+    fm.addEventListener('input',e=>{
+      const t=e.target,k=t.dataset.f;
+      if(k==='price')f.att[+t.dataset.i].price=t.value;
+      else if(t.id==='lf-name')f.name=t.value;
+      else if(t.id==='lf-note')f.note=t.value;
+      else if(k==='durx'){f.dur=+t.value||0;b.querySelector('#lf-end').textContent=endTxt()}
+      else if(t.id==='lf-time'){f.time=t.value;b.querySelector('#lf-end').textContent=endTxt()}
+    });
+    fm.addEventListener('change',e=>{
+      const t=e.target,k=t.dataset.f;
+      if(t.id==='lf-date'&&t.value){const old=(pd(f.date).getDay()+6)%7;f.date=t.value;if(f.wds.length===1&&f.wds[0]===old)f.wds=[(pd(f.date).getDay()+6)%7];fill(it)}
+      else if(k==='rep'){f.rep=t.checked;fill(it)}
+      else if(k==='paid')f.paid=t.checked;
+      else if(t.id==='lf-scope')f.scope=t.value;
+    });
+    fm.addEventListener('submit',e=>{e.preventDefault();saveLesson(f,l,ser,it)});
+  }});
+}
+function saveLesson(f,l,ser,it){
+  const err=it.el.querySelector('#lf-err');const fail=m=>{err.textContent=m;err.scrollIntoView({block:'nearest'})};
+  if(!f.att.length)return fail('Виберіть хоча б одного учня.');
+  if(!f.date||!f.time)return fail('Вкажіть дату й час.');
+  const dur=Math.round(+f.dur);if(!(dur>=5&&dur<=600))return fail('Вкажіть тривалість від 5 до 600 хвилин.');
+  const att=f.att.map(a=>({sid:a.sid,price:Math.max(0,Math.round(+a.price)||0),status:a.status||'auto'}));
+  const name=att.length>1?f.name.trim():'', note=f.note.trim();
+  const merge=old=>att.map(a=>{const o=(old||[]).find(x=>x.sid===a.sid);return Object.assign({},a,{status:o?o.status:'auto'})});
+  if(l){
+    const delta=Math.round((pd(f.date)-pd(l.date))/864e5);
+    if(f.scope==='next'&&l.series){
+      const owd=(pd(l.date).getDay()+6)%7, nwd=(pd(f.date).getDay()+6)%7;
+      const targets=S.lessons.filter(x=>x.series===l.series&&x.date>=l.date);
+      targets.forEach(x=>{if(delta&&(pd(x.date).getDay()+6)%7===owd)x.date=ymd(addD(pd(x.date),delta));x.time=f.time;x.dur=dur;x.att=merge(x.att);x.name=name});
+      l.note=note;
+      if(ser){ser.time=f.time;ser.dur=dur;ser.name=name;ser.att=att.map(a=>Object.assign({},a,{status:'auto'}));if(delta)ser.wds=[...new Set(ser.wds.map(w=>w===owd?nwd:w))].sort((a,b)=>a-b)}
+      closeSheet(it);commit();toast(`Змінено ${nLessons(targets.length)}`);return;
+    }
+    l.date=f.date;l.time=f.time;l.dur=dur;l.att=merge(l.att);l.name=name;l.note=note;
+    closeSheet(it);commit();toast('Заняття змінено');return;
+  }
+  let first;
+  if(f.rep){
+    if(!f.wds.length)return fail('Виберіть хоча б один день тижня.');
+    const sr={id:uid(),wds:f.wds.slice().sort((a,b)=>a-b),time:f.time,dur,name,att:att.map(a=>Object.assign({},a,{status:'auto'})),start:f.date,genUntil:null,end:null};
+    S.series.push(sr);genSeries(sr,S.lessons);
+    first=S.lessons.filter(x=>x.series===sr.id).sort((a,b)=>a.date.localeCompare(b.date))[0];
+  }else{first={id:uid(),date:f.date,time:f.time,dur,series:null,name,att};S.lessons.push(first)}
+  if(first){if(note)first.note=note;if(f.paid)first.att.forEach(a=>{if(a.price>0)S.payments.push({id:uid(),sid:a.sid,date:first.date,amount:a.price,lessonId:first.id})})}
+  closeSheet(it);ui.week=mon(pd(first?first.date:f.date));commit();
+  toast(f.rep?'Заняття додано, повторюється щотижня':'Заняття додано');
+}
+
+/* weekly series: lessons are generated ~12 weeks ahead and topped up on every launch */
+const HORIZON=84;
+function genSeries(sr,arr){
+  const today=ymd(new Date());
+  let hz=ymd(addD(pd(sr.start>today?sr.start:today),HORIZON));
+  if(sr.end&&sr.end<hz)hz=sr.end;
+  if(sr.genUntil&&sr.genUntil>=hz)return;
+  for(let d=sr.genUntil?addD(pd(sr.genUntil),1):pd(sr.start);ymd(d)<=hz;d=addD(d,1)){
+    if(sr.wds.includes((d.getDay()+6)%7))arr.push({id:uid(),date:ymd(d),time:sr.time,dur:sr.dur,series:sr.id,name:sr.name||'',color:sr.color,att:sr.att.map(a=>({sid:a.sid,price:a.price,status:'auto'}))});
+  }
+  sr.genUntil=hz;
+}
+function ensureSeries(){S.series.forEach(sr=>genSeries(sr,S.lessons))}
+function setPaid(lid,sid,on){
+  const l=S.lessons.find(x=>x.id===lid);const x=C.map[lid+':'+sid];if(!l||!x)return;
+  if(on){const amt=x.price-x.paid;if(amt>0){S.payments.push({id:uid(),sid,date:l.date,amount:amt,lessonId:l.id});toast(`Оплату ${money(amt)} зараховано`)}}
+  else{const i=S.payments.findIndex(p=>p.lessonId===l.id&&p.sid===sid);if(i>=0){S.payments.splice(i,1);toast('Оплату скасовано')}else toast('Заняття оплачене з балансу. Записи оплат є в картці учня → Статистика → Внески.')}
+  commit();
+}
+
+/* student details */
+function studentSheet(id){
+  openSheet(()=>{
+    const s=stu(id);if(!s)return null;const b=C.bal[id];
+    let lbl='Баланс',big=`<div class="big">0 ₴</div>`,sub='Усе оплачено';
+    if(b.balance>0){lbl='Оплачено наперед';big=`<div class="big pos">${money(b.balance)}</div>`;sub=b.preN?nLessons(b.preN):'Менше за одне заняття'}
+    if(b.balance<0){lbl='Борг';big=`<div class="big neg">${money(-b.balance)}</div>`;sub=b.debtN?`${nLessons(b.debtN)} не оплачено`:''}
+    const up=b.list.filter(r=>r.st==='planned').slice(0,8);
+    const past=b.list.filter(r=>r.st!=='planned').reverse().slice(0,30);
+    const row=r=>`<button class="hrow" data-act="lesson" data-id="${r.l.id}"><div><b>${dmy(r.l.date)}</b><small>${r.l.time}${r.l.att.length>1?' · група':''} · ${ST_LABEL[r.state]}</small></div><span class="hp">${money(r.price)}</span><span class="sti ${r.state}" aria-hidden="true">${ST_ICON[r.state]}</span></button>`;
+    const tg=s.tg?s.tg.replace(/^@/,''):'', ig=s.ig?s.ig.replace(/^@/,''):'', ph=s.phone?s.phone.replace(/[^\d+]/g,''):'', wa=(s.wa||s.phone||'').replace(/[^\d]/g,'');
+    const contacts=[tg&&`<a href="https://t.me/${encodeURIComponent(tg)}" target="_blank" rel="noopener">${ci('tg',16)} Telegram</a>`,ig&&`<a href="https://instagram.com/${encodeURIComponent(ig)}" target="_blank" rel="noopener">${ci('ig',16)} Instagram</a>`,wa&&`<a href="https://wa.me/${wa}" target="_blank" rel="noopener">${ci('wa',16)} WhatsApp</a>`,ph&&`<a href="tel:${ph}">${ci('phone',16)} ${esc(s.phone)}</a>`,s.email&&`<span>${ci('email',16)} ${esc(s.email)}</span>`].filter(Boolean).join('');
+    return `${top('',`<button class="iconbtn solid" data-act="editStudent" data-id="${id}" aria-label="Редагувати">${ICON.edit}</button>`)}
+    <div class="hero">${av(s,'lg').replace('class="av','style="margin:0 auto" class="av')}<div class="sname">${esc(s.name)}</div><div class="ssub">${money(s.price)} · ${s.dur} хв${s.note?' · '+esc(s.note):''}</div>${contacts?`<div class="contacts">${contacts}</div>`:''}</div>
+    <div class="panel"><div class="bal"><div><div class="lbl">${lbl}</div>${big}<div class="lbl">${sub}</div></div><button class="pillbtn" data-act="stStats" data-id="${id}">${ICON.stats.replace('<svg','<svg style="vertical-align:-3px;margin-right:4px"')}Статистика</button></div>
+      <div class="topup"><input id="amt" type="number" inputmode="numeric" min="0" step="50" placeholder="Сума, ₴" aria-label="Сума"><button class="btn sm" data-act="pay" data-id="${id}" data-sign="1">Оплата</button><button class="btn sm ghost" data-act="pay" data-id="${id}" data-sign="-1">Повернення</button></div>
+      <div class="btnrow" style="margin-top:8px"><button class="btn ghost sm" style="flex:1" data-act="pay" data-id="${id}" data-sign="1" data-amt="${s.price}">+ одне заняття</button><button class="btn ghost sm" style="flex:1" data-act="pay" data-id="${id}" data-sign="1" data-amt="${s.price*4}">+ чотири заняття</button></div>
+      <button class="btn ghost sm msgbtn" data-act="msg" data-id="${id}">${ci('tg',18)} Написати про оплату</button>
+    </div>
+    <div class="sec"><span>Сьогодні та заплановані</span><button class="pillbtn" data-act="newLesson" data-sid="${id}">+ Заняття</button></div>
+    ${up.map(row).join('')||'<p class="hint">Запланованих занять немає.</p>'}
+    <div class="sec"><span>Минулі заняття</span></div>
+    ${past.map(row).join('')||'<p class="hint">Ще не було жодного заняття.</p>'}
+    <div class="btnrow" style="margin-top:18px"><button class="btn danger" data-act="delStudent" data-id="${id}">Видалити учня</button></div>`;
+  });
+}
+
+/* student form */
+const CONTACTS=[
+  {k:'tg',label:'Telegram',pre:'@',ph:'нік у Telegram',type:'text',im:'text'},
+  {k:'ig',label:'Instagram',pre:'@',ph:'нік в Instagram',type:'text',im:'text'},
+  {k:'phone',label:'Телефон',pre:'',ph:'+380 …',type:'tel',im:'tel'},
+  {k:'wa',label:'WhatsApp',pre:'',ph:'+380 … (якщо інший, ніж телефон)',type:'tel',im:'tel'},
+  {k:'email',label:'Email',pre:'',ph:'name@example.com',type:'email',im:'email'}];
+const avBig=f=>f.emoji?`<span class="av" aria-hidden="true">${f.emoji}</span>`:(f.name.trim()?`<span class="av ini" aria-hidden="true">${esc(initials(f.name))}</span>`:`<span class="av ghost" aria-hidden="true">${ICON.person}</span>`);
+function newStudent(id){
+  const src=id?stu(id):null;
+  const f=Object.assign({name:'',emoji:'',price:500,dur:60,tg:'',ig:'',phone:'',wa:'',email:'',note:''},src||{});
+  ['tg','ig','phone','wa','email','note'].forEach(k=>f[k]=String(f[k]||''));
+  f.tg=f.tg.replace(/^@/,'');f.ig=f.ig.replace(/^@/,'');
+  let ctab=(CONTACTS.find(c=>f[c.k])||CONTACTS[0]).k;
+  const other=!DCH.includes(+f.dur);
+  const it=openSheet(()=>{
+    const c=CONTACTS.find(x=>x.k===ctab);
+    return `<form id="sf" novalidate>
+    <div class="fhead"><button type="button" class="fbtn" data-act="closeSheet">Скасувати</button><div class="sh-title">${id?'Редагувати учня':'Новий учень'}</div><button class="fbtn primary" type="submit" id="sf-save"${f.name.trim()?'':' disabled'}>Зберегти</button></div>
+    <div class="avatar-edit"><span id="sf-av">${avBig(f)}</span><button type="button" class="badge" data-f="emo" aria-label="Вибрати значок" aria-expanded="false">${ICON.smile}</button></div>
+    <div class="group" id="sf-emo" hidden><div class="emojis2"><button type="button" data-f="em" data-v="" aria-pressed="${!f.emoji}" class="ini2" aria-label="Без значка, ініціали">АБ</button>${EMOJI.map(e=>`<button type="button" data-f="em" data-v="${e}" aria-pressed="${f.emoji===e}">${e}</button>`).join('')}</div></div>
+    <div class="group">
+      <div class="grow"><input class="bare big" id="sf-name" placeholder="Імʼя учня" value="${esc(f.name)}" autocomplete="off" aria-label="Імʼя учня"></div>
+      <div class="grow"><span class="gl">Ціна</span><span class="bignum"><input type="number" inputmode="numeric" min="0" step="10" id="sf-price" value="${esc(f.price)}" aria-label="Ціна заняття"><span>₴</span></span><span class="stepper"><button type="button" data-f="step" data-v="50" aria-label="Більше на 50 гривень">▲</button><button type="button" data-f="step" data-v="-50" aria-label="Менше на 50 гривень">▼</button></span></div>
+      <div class="durs">${durChips(+f.dur,other)}</div>
+      <div class="grow" id="sf-durx-row"${other?'':' hidden'}><span class="gl">Тривалість, хв</span><input type="number" inputmode="numeric" min="5" step="5" class="pillin num" id="sf-durx" value="${esc(f.dur)}" aria-label="Тривалість у хвилинах"></div>
+    </div>
+    <div class="sec"><span>Контакти</span></div>
+    <div class="group">
+      <div class="ctabs">${CONTACTS.map(x=>`<button type="button" data-f="ct" data-v="${x.k}" aria-pressed="${x.k===ctab}" aria-label="${x.label}" class="${f[x.k]?'has':''}">${ci(x.k,20)}</button>`).join('')}</div>
+      <label class="cin"><b id="sf-pre">${c.pre}</b><input class="bare" id="sf-contact" type="${c.type}" inputmode="${c.im}" placeholder="${c.ph}" value="${esc(f[ctab])}" autocomplete="off" aria-label="${c.label}"></label>
+    </div>
+    <div class="group"><input class="bare" id="sf-note" placeholder="Нотатка, наприклад: готується до НМТ" value="${esc(f.note)}" autocomplete="off" aria-label="Нотатка" style="padding-block:16px;font-size:15px;font-weight:500"></div>
+    <p class="err" id="sf-err"></p>
+    </form>`;
+  },{live:false,mount:b=>{
+    const fm=b.querySelector('#sf'), q=s=>b.querySelector(s);
+    const syncAv=()=>{q('#sf-av').innerHTML=avBig(f)};
+    fm.addEventListener('click',e=>{
+      const t=e.target.closest('[data-f]');if(!t)return;const k=t.dataset.f;
+      if(k==='emo'){const p=q('#sf-emo');p.hidden=!p.hidden;t.setAttribute('aria-expanded',String(!p.hidden))}
+      else if(k==='em'){f.emoji=t.dataset.v;b.querySelectorAll('[data-f=em]').forEach(x=>x.setAttribute('aria-pressed',String(x===t)));syncAv();q('#sf-emo').hidden=true}
+      else if(k==='step'){const inp=q('#sf-price');inp.value=Math.max(0,(+inp.value||0)+(+t.dataset.v));f.price=+inp.value}
+      else if(k==='dur'){const x=t.dataset.v==='x';b.querySelectorAll('[data-f=dur]').forEach(y=>y.setAttribute('aria-pressed',String(y===t)));q('#sf-durx-row').hidden=!x;if(x)q('#sf-durx').focus();else{f.dur=+t.dataset.v;q('#sf-durx').value=f.dur}}
+      else if(k==='ct'){ctab=t.dataset.v;const c=CONTACTS.find(z=>z.k===ctab);const inp=q('#sf-contact');b.querySelectorAll('[data-f=ct]').forEach(y=>y.setAttribute('aria-pressed',String(y===t)));q('#sf-pre').textContent=c.pre;inp.type=c.type;inp.inputMode=c.im;inp.placeholder=c.ph;inp.value=f[ctab]||'';inp.setAttribute('aria-label',c.label);inp.focus()}
+    });
+    fm.addEventListener('input',e=>{
+      const t=e.target;
+      if(t.id==='sf-name'){f.name=t.value;q('#sf-save').disabled=!f.name.trim();if(!f.emoji)syncAv()}
+      else if(t.id==='sf-price')f.price=t.value;
+      else if(t.id==='sf-durx')f.dur=t.value;
+      else if(t.id==='sf-note')f.note=t.value;
+      else if(t.id==='sf-contact'){let v=t.value.trim();if(ctab==='tg'||ctab==='ig')v=v.replace(/^https?:\/\/(www\.)?(t\.me|instagram\.com)\//i,'').replace(/^@/,'').replace(/\/$/,'');f[ctab]=v;b.querySelector(`[data-f=ct][data-v=${ctab}]`).classList.toggle('has',!!v)}
+    });
+    fm.addEventListener('submit',e=>{
+      e.preventDefault();const er=q('#sf-err');
+      const name=f.name.trim();if(!name){er.textContent='Вкажіть імʼя.';return}
+      const dur=Math.round(+f.dur);if(!(dur>=5&&dur<=600)){er.textContent='Вкажіть тривалість від 5 до 600 хвилин.';return}
+      const data={name,emoji:f.emoji,price:Math.max(0,Math.round(+f.price)||0),dur,tg:f.tg,ig:f.ig,phone:f.phone.trim(),wa:f.wa.trim(),email:f.email.trim(),note:f.note.trim()};
+      if(id){Object.assign(stu(id),data);closeSheet(it);commit();toast('Збережено')}
+      else{const ns=Object.assign({id:uid()},data);S.students.push(ns);closeSheet(it);commit();toast('Учня додано');studentSheet(ns.id)}
+    });
+  }});
+}
+
+/* payment messages: the app prepares text, the tutor sends it in Telegram/WhatsApp */
+function msgText(sid,kind){
+  const b=C.bal[sid];
+  if(kind==='debt'){
+    const d=b.list.filter(r=>r.state==='debt');
+    if(!d.length&&b.balance>=0)return 'Добрий день! Нагадую про оплату наступного заняття. Дякую!';
+    const dates=d.map(r=>dmy(r.l.date).slice(0,5)).join(', ');
+    return `Добрий день! Нагадую про оплату ${d.length>1?'занять':'заняття'}${dates?' ('+dates+')':''}: ${money(Math.max(0,-b.balance))}. Дякую!`;
+  }
+  if(kind==='paid'){
+    const last=S.payments.filter(p=>p.sid===sid&&p.amount>0).sort((x,y)=>y.date.localeCompare(x.date))[0];
+    let t=`Дякую, оплату${last?' '+money(last.amount):''} отримано!`;
+    if(b.balance>0)t+=b.preN?` Оплачено наперед ${nLessons(b.preN)}.`:` На балансі ${money(b.balance)}.`;
+    else if(b.balance<0)t+=` Залишок до оплати: ${money(-b.balance)}.`;
+    return t;
+  }
+  const nx=b.list.find(r=>r.st==='planned'&&r.t>Date.now());
+  return nx?`Добрий день! Нагадую: наступне заняття ${dayWord(new Date(nx.t),C.now)} о ${nx.l.time}.`:'Добрий день! Домовимося про наступне заняття?';
+}
+function copyText(text,ta){
+  try{navigator.clipboard.writeText(text).then(()=>{},()=>{ta.select()})}catch(e){ta.select()}
+}
+function msgSheet(sid){
+  const s=stu(sid);if(!s)return;
+  let kind=C.bal[sid].balance<0?'debt':'paid';
+  const wa=(s.wa||s.phone||'').replace(/[^\d]/g,'');
+  const links=text=>({
+    tg:s.tg?`https://t.me/${encodeURIComponent(s.tg)}?text=${encodeURIComponent(text)}`:'',
+    share:`https://t.me/share/url?url=${encodeURIComponent(text)}`,
+    wa:wa?`https://wa.me/${wa}?text=${encodeURIComponent(text)}`:''
+  });
+  openSheet(()=>{
+    const text=msgText(sid,kind),L=links(text);
+    return `${top('Повідомлення')}
+    <div class="panel" style="display:flex;gap:12px;align-items:center">${av(s,'sm')}<div><b>${esc(s.name)}</b><div class="ssub">${s.tg?'Telegram: @'+esc(s.tg):'Telegram не вказано'}</div></div></div>
+    <div class="seg" role="group" aria-label="Тип повідомлення">${[['debt','Борг'],['paid','Оплату отримано'],['next','Заняття']].map(([k,t])=>`<button type="button" data-m="${k}" aria-pressed="${kind===k}">${t}</button>`).join('')}</div>
+    <div class="group"><textarea class="bare note" id="msg-t" aria-label="Текст повідомлення" style="min-height:120px">${esc(text)}</textarea></div>
+    <div class="stack">
+      ${L.tg?`<a class="btn" id="msg-tg" data-m="send" href="${L.tg}" target="_blank" rel="noopener">${ci('tg',18)} Відкрити чат з @${esc(s.tg)}</a>`:''}
+      <a class="btn${L.tg?' ghost':''}" id="msg-share" data-m="send" href="${L.share}" target="_blank" rel="noopener">${ci('tg',18)} ${L.tg?'Надіслати в інший чат':'Вибрати чат у Telegram'}</a>
+      ${L.wa?`<a class="btn ghost" id="msg-wa" data-m="send" href="${L.wa}" target="_blank" rel="noopener">${ci('wa',18)} WhatsApp</a>`:''}
+      <button type="button" class="btn ghost" data-m="copy">Скопіювати текст</button>
+    </div>
+    <p class="hint" style="margin-top:12px">Текст можна змінити перед надсиланням. Застосунок лише готує повідомлення, а надсилаєте його ви. Текст також копіюється: якщо він не вставився в чат сам, утримуйте поле вводу й виберіть «Вставити».${s.tg?'':' Додайте нік учня в Telegram у його картці, щоб чат відкривався одразу.'}</p>`;
+  },{live:false,mount:(b)=>{
+    const ta=b.querySelector('#msg-t');
+    const sync=()=>{const L=links(ta.value.trim());[['tg','#msg-tg'],['share','#msg-share'],['wa','#msg-wa']].forEach(([k,q])=>{const a=b.querySelector(q);if(a&&L[k])a.href=L[k]})};
+    ta.addEventListener('input',sync);
+    b.addEventListener('click',e=>{
+      const t=e.target.closest('[data-m]');if(!t)return;const m=t.dataset.m;
+      if(m==='debt'||m==='paid'||m==='next'){kind=m;ta.value=msgText(sid,kind);sync();b.querySelectorAll('.seg [data-m]').forEach(x=>x.setAttribute('aria-pressed',String(x===t)));return}
+      copyText(ta.value.trim(),ta);
+      if(m==='copy')toast('Скопійовано');
+    });
+  }});
+}
+
+/* stats: week / month */
+function donut(r){
+  const segs=[[r.earned,'var(--paid)'],[r.expected,'var(--debt)'],[r.ahead,'var(--plan)'],[r.lost,'var(--canc)']].filter(s=>s[0]>0);
+  const sum=segs.reduce((a,s)=>a+s[0],0),R=72,L=2*Math.PI*R,gap=segs.length>1?5:0;let off=0;
+  const arcs=sum?segs.map(([v,c])=>{const len=v/sum*L;const el=`<circle r="${R}" cx="100" cy="100" fill="none" stroke="${c}" stroke-width="24" stroke-dasharray="${Math.max(len-gap,.5)} ${L}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)"/>`;off+=len;return el}).join(''):`<circle r="${R}" cx="100" cy="100" fill="none" stroke="var(--surface-2)" stroke-width="24"/>`;
+  return `<svg class="donut" viewBox="0 0 200 200" role="img" aria-label="Зароблено ${money(r.earned)} із ${money(r.total)}">${arcs}<text x="100" y="84" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="Manrope,system-ui,sans-serif">Зароблено</text><text x="100" y="108" text-anchor="middle" font-size="22" font-weight="800" fill="var(--accent)" font-family="Manrope,system-ui,sans-serif">${money(r.earned)}</text><text x="100" y="128" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="Manrope,system-ui,sans-serif">із ${money(r.total)}</text></svg>`;
+}
+function statsSheet(ctx){
+  openSheet(it=>{
+    const c=it.ctx;let from,to,label;
+    if(c.mode==='month'){from=new Date(c.y,c.m,1);to=new Date(c.y,c.m+1,1);label=`${MON_N[c.m]} ${c.y} р.`}
+    else{from=c.w;to=addD(c.w,7);label=weekLabel(c.w)}
+    const r=periodStats(+from,+to);
+    const ranks=Object.entries(r.bySt).filter(([sid])=>stu(sid)).sort((a,b)=>b[1].earned-a[1].earned);
+    const colors=['var(--paid)','var(--gold)','var(--plan)','var(--miss)','var(--debt)','var(--canc)'];
+    return `${top('Статистика')}
+    <div class="seg" role="group"><button data-act="statMode" data-v="week" aria-pressed="${c.mode==='week'}">Тиждень</button><button data-act="statMode" data-v="month" aria-pressed="${c.mode==='month'}">Місяць</button></div>
+    <div class="monthnav"><button class="iconbtn solid" data-act="statNav" data-d="-1" aria-label="Назад">${ICON.left}</button><b style="text-align:center">${label}</b><button class="iconbtn solid" data-act="statNav" data-d="1" aria-label="Вперед">${ICON.right}</button></div>
+    <div class="panel">${donut(r)}</div>
+    <div class="legend">
+      <div class="lg"><i class="dot" style="background:var(--paid)"></i><span>Зароблено</span><b>${money(r.earned)}</b></div>
+      <div class="lg"><i class="dot" style="background:var(--debt)"></i><span>Очікується</span><b>${money(r.expected)}</b></div>
+      <div class="lg"><i class="dot" style="background:var(--plan)"></i><span>Попереду</span><b>${money(r.ahead)}</b></div>
+      <div class="lg"><i class="dot" style="background:var(--canc)"></i><span>Втрачено</span><b class="${r.lost?'down':''}">${r.lost?'−'+money(r.lost):money(0)}</b></div>
+    </div>
+    ${r.missedN?`<div class="center-pill"><span>Пропущено ${nLessons(r.missedN)}</span></div>`:''}
+    <p class="hint" style="margin-top:12px">«Очікується»: проведені, але ще не оплачені заняття. «Попереду»: заплановані.</p>
+    ${ranks.length?'<div class="sec"><span>Учні</span><span>Зароблено</span></div>':''}
+    ${ranks.map(([sid,v],i)=>`<button class="rank" data-act="student" data-id="${sid}"><i class="dot" style="background:${colors[i%colors.length]}"></i><div><b>${esc(stu(sid).name)}</b></div><div class="rv">${money(v.earned)}<small>${nLessons(v.n)}${r.earned?' · '+Math.round(v.earned/r.earned*100)+'%':''}</small></div></button>`).join('')}`;
+  },{ctx});
+}
+
+/* stats: one student */
+function stStatsSheet(sid){
+  const n=C.now, tdy=ymd(n);
+  const hasToday=(C.bal[sid]||{list:[]}).list.some(r=>r.l.date===tdy);
+  openSheet(it=>{
+    const s=stu(sid);if(!s)return null;const c=it.ctx;const b=C.bal[sid];
+    const mFrom=new Date(c.y,c.m,1),mTo=new Date(c.y,c.m+1,1),pFrom=new Date(c.y,c.m-1,1);
+    const inM=b.list.filter(r=>r.t>=+mFrom&&r.t<+mTo), inP=b.list.filter(r=>r.t>=+pFrom&&r.t<+mFrom);
+    const earnedOf=a=>a.reduce((t,r)=>t+(r.charged?r.paid:0),0), lostOf=a=>a.reduce((t,r)=>t+(!r.charged&&r.st!=='planned'?r.price:0),0);
+    const earned=earnedOf(inM), pEarned=earnedOf(inP), lost=lostOf(inM), pLost=lostOf(inP);
+    const expDebt=inM.filter(r=>r.state==='debt');const expected=expDebt.reduce((t,r)=>t+r.price-r.paid,0);
+    const cnt={};inM.forEach(r=>cnt[r.state]=(cnt[r.state]||0)+1);
+    const held=inM.filter(r=>r.st==='done').length, all=inM.filter(r=>r.st!=='cancelled').length;
+    const totalEarned=earnedOf(b.list), totalN=b.list.filter(r=>r.st==='done').length;
+    let body='';
+    if(c.tab==='month'){
+      const off=(mFrom.getDay()+6)%7, days=new Date(c.y,c.m+1,0).getDate();
+      let cells=WD.map(w=>`<div class="wd">${w}</div>`).join('')+'<div></div>'.repeat(off);
+      for(let d=1;d<=days;d++){
+        const ds=ymd(new Date(c.y,c.m,d));const rs=inM.filter(r=>r.l.date===ds);
+        const cls=`${ds===tdy?' today':''}${c.sel===ds?' sel':''}`;
+        if(rs.length){const ss=rs.map(r=>r.state);const st=['debt','missed','planned','prepaid','paid','cancelled'].find(x=>ss.includes(x));
+          cells+=`<button type="button" class="d ${st}${cls}" data-act="stDay" data-d="${ds}" aria-pressed="${c.sel===ds}" aria-label="${d} ${MON_G[c.m]}: ${ST_LABEL[st]}">${d}</button>`}
+        else cells+=`<div class="d${cls}">${d}</div>`;
+      }
+      const rows=c.sel?inM.filter(r=>r.l.date===c.sel).map(r=>{
+        const can=r.charged||r.st==='planned', on=r.state==='paid'||r.state==='prepaid';
+        return `<div class="dayrow"><button type="button" class="dr-main" data-act="lesson" data-id="${r.l.id}"><b>${dmy(r.l.date)}</b><small>${r.l.time}${r.l.att.length>1?' · група':''} · ${ST_LABEL[r.state]}</small></button><span class="hp">${money(r.price)}</span>${can?`<button type="button" class="pcirc${on?' on':''}" data-act="togglePaid" data-l="${r.l.id}" data-s="${sid}" aria-pressed="${on}" aria-label="Оплачено">${on?'✓':''}</button>`:`<span class="sti ${r.state}" aria-hidden="true">${ST_ICON[r.state]}</span>`}</div>`;
+      }).join(''):'';
+      const colorOf={paid:'paid',debt:'debt',prepaid:'pre',planned:'plan',missed:'miss',cancelled:'canc'};
+      const lg=[['paid','Оплачено'],['debt','Борг'],['prepaid','Наперед'],['planned','Заплановано'],['missed','Пропущено'],['cancelled','Скасовано']].filter(([k])=>cnt[k]).map(([k,t])=>`<span><i class="dot" style="background:var(--${colorOf[k]})"></i>${t} ${cnt[k]}</span>`).join('');
+      const diff=earned-pEarned;
+      body=`<div class="panel"><div class="monthnav"><b>${MON_N[c.m]} <span class="muted" style="font-weight:600;font-size:13px">· проведено ${held} з ${all}</span></b><button class="iconbtn" data-act="stNav" data-d="-1" aria-label="Попередній місяць">${ICON.left}</button><button class="iconbtn" data-act="stNav" data-d="1" aria-label="Наступний місяць">${ICON.right}</button></div>
+      <div class="cal">${cells}</div>
+      ${rows?`<div class="dayrows">${rows}</div>`:(inM.length?'<p class="hint" style="margin:12px 0 0">Торкніться дня із заняттям, щоб побачити його й позначити оплату.</p>':'')}
+      ${lg?`<div class="leg2">${lg}</div>`:'<p class="hint" style="margin-top:12px">У цьому місяці занять немає.</p>'}
+      <div class="earn"><div><small>Зароблено</small><div class="v" style="color:var(--accent)">${money(earned)}</div><small class="${diff>=0?'up':'down'}">${diff>=0?'↑':'↓'} ${money(Math.abs(diff))} проти ${MON_G[(c.m+11)%12]}</small></div><div style="text-align:right"><small>Втрачено</small><div class="v ${lost?'down':''}">${lost?'−'+money(lost):money(0)}</div><small>${MON_N[(c.m+11)%12]}: ${pLost?'−'+money(pLost):money(0)}</small></div></div>
+      ${expected?`<div class="center-pill" style="justify-content:flex-start"><span style="background:var(--debt-bg);color:var(--debt)">Очікується ${money(expected)} · ${nLessons(expDebt.length)}</span></div>`:''}</div>`;
+    }else{
+      const pays=S.payments.filter(p=>p.sid===sid).sort((a,b)=>b.date.localeCompare(a.date));
+      body=pays.length?`<p class="hint">Усього внесено: ${money(b.P)}</p>`+pays.map(p=>`<div class="hrow"><div><b class="${p.amount<0?'down':''}">${p.amount<0?'−'+money(-p.amount):'+'+money(p.amount)}</b><small>${dmy(p.date)}${p.lessonId?' · за заняття':''}${p.amount<0?' · повернення':''}</small></div><button class="pillbtn" style="background:var(--debt-bg);color:var(--debt)" data-act="delPay" data-id="${p.id}">Видалити</button></div>`).join('')
+        :`<div class="emptybig">${ICON.history}<p>Внесків ще не було</p></div>`;
+    }
+    return `${top('Статистика')}
+    <div class="panel" style="display:flex;gap:12px;align-items:center">${av(s,'sm')}<div><b>${esc(s.name)}</b><div class="ssub">${money(s.price)} · ${s.dur} хв</div><div class="ssub">Зароблено ${money(totalEarned)} · ${nLessons(totalN)}</div></div></div>
+    <div class="seg" role="group"><button data-act="stTab" data-v="month" aria-pressed="${c.tab==='month'}">Місяць</button><button data-act="stTab" data-v="pays" aria-pressed="${c.tab==='pays'}">Внески</button></div>
+    ${body}`;
+  },{ctx:{y:n.getFullYear(),m:n.getMonth(),tab:'month',sel:hasToday?tdy:null}});
+}
+
+/* settings & backup */
+const hosted=!!document.querySelector('link[rel="manifest"]');
+function settingsSheet(){
+  openSheet(()=>`${top('Налаштування')}
+  <div class="panel">
+    <div class="setrow"><div><b>Пропущене заняття оплачується</b><small>Якщо учень не прийшов без попередження</small></div><label class="sw"><input type="checkbox" data-change="chargeMissed"${S.settings.chargeMissed?' checked':''} aria-label="Пропущене заняття оплачується"><span></span></label></div>
+    <div class="row2" style="margin-top:10px"><label class="field"><span>Сітка з</span><select data-change="dayStart">${[...Array(13)].map((_,i)=>i+5).map(h=>`<option value="${h}"${h===+S.settings.dayStart?' selected':''}>${h}:00</option>`).join('')}</select></label><label class="field"><span>до</span><select data-change="dayEnd">${[...Array(10)].map((_,i)=>i+15).map(h=>`<option value="${h}"${h===+S.settings.dayEnd?' selected':''}>${h}:00</option>`).join('')}</select></label></div>
+  </div>
+  <div class="sec"><span>Резервна копія</span></div>
+  <div class="panel">
+    <p class="hint" style="margin-top:0">Дані зберігаються лише на цьому телефоні. Раз на тиждень робіть копію й зберігайте її, наприклад, у «Збережених» Telegram.</p>
+    <div class="btnrow"><button class="btn" data-act="exportData">Створити копію</button></div>
+    <div id="exp" hidden style="margin-top:10px"><textarea id="exp-t" readonly aria-label="Резервна копія"></textarea><div class="btnrow"><button class="btn ghost" data-act="copyExp">Скопіювати</button>${hosted?'<button class="btn ghost" data-act="dlExp">Завантажити файл</button>':''}</div></div>
+  </div>
+  <div class="panel">
+    <b>Відновити з копії</b>
+    <p class="hint">Вставте текст копії або виберіть файл. Поточні дані буде замінено.</p>
+    <textarea id="imp-t" placeholder="Вставте копію сюди" aria-label="Текст копії"></textarea>
+    <input type="file" id="imp-f" accept=".json,application/json,text/plain" style="margin-top:8px">
+    <div class="btnrow" style="margin-top:10px"><button class="btn ghost" data-act="importData">Відновити</button></div>
+  </div>
+  <div class="stack"><button class="btn ghost" data-act="loadSample">Показати приклад із вигаданими учнями</button><button class="btn danger" data-act="wipe">Видалити всі дані</button></div>`,
+  {live:false,mount:b=>{b.querySelector('#imp-f').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{b.querySelector('#imp-t').value=rd.result};rd.readAsText(f)})}});
+}
+
+/* ---------- actions ---------- */
+const A={
+  tab:d=>{ui.tab=d.t;view.innerHTML='';renderMain();window.scrollTo(0,0)},
+  week:d=>{ui.week=+d.d===0?mon(new Date()):addD(ui.week,+d.d);renderMain()},
+  view:d=>{S.settings.view=d.v;save();renderMain()},
+  toggleView:()=>{S.settings.view=S.settings.view==='grid'?'list':'grid';save();renderMain()},
+  stDay:(d,t)=>{const it=itemOf(t);it.ctx.sel=it.ctx.sel===d.d?null:d.d;fill(it)},
+  togglePaid:d=>{const x=C.map[d.l+':'+d.s];setPaid(d.l,d.s,!(x&&(x.state==='paid'||x.state==='prepaid')))},
+  msg:d=>msgSheet(d.id),
+  stats:d=>statsSheet(d.mode==='month'?{mode:'month',y:+d.y,m:+d.m,w:ui.week}:{mode:'week',w:ui.week,y:ui.week.getFullYear(),m:ui.week.getMonth()}),
+  statMode:(d,t)=>{const it=itemOf(t);it.ctx.mode=d.v;if(d.v==='month'){const r=addD(it.ctx.w,3);it.ctx.y=r.getFullYear();it.ctx.m=r.getMonth()}fill(it)},
+  statNav:(d,t)=>{const it=itemOf(t),c=it.ctx;if(c.mode==='week')c.w=addD(c.w,7*d.d);else{const x=new Date(c.y,c.m+(+d.d),1);c.y=x.getFullYear();c.m=x.getMonth()}fill(it)},
+  stTab:(d,t)=>{const it=itemOf(t);it.ctx.tab=d.v;fill(it)},
+  stNav:(d,t)=>{const it=itemOf(t),c=it.ctx;c.sel=null;const x=new Date(c.y,c.m+(+d.d),1);c.y=x.getFullYear();c.m=x.getMonth();fill(it)},
+  lesson:d=>lessonSheet(d.id),
+  student:d=>studentSheet(d.id),
+  stStats:d=>stStatsSheet(d.id),
+  newStudent:()=>newStudent(),
+  editStudent:d=>newStudent(d.id),
+  newLesson:d=>lessonForm({sid:d.sid}),
+  editLesson:d=>lessonForm({id:d.id}),
+  fab:()=>ui.tab==='sched'?lessonForm({date:(()=>{const t=ymd(C.now);const w0=ymd(ui.week),w1=ymd(addD(ui.week,6));return t>=w0&&t<=w1?t:w0})()}):newStudent(),
+  newAt:(d,t,e)=>{
+    if(e.target!==t&&!t.classList.contains('g-day'))return;
+    let time=d.time;
+    if(t.classList.contains('g-col')){const r=t.getBoundingClientRect();const m=+d.h0*60+Math.floor((e.clientY-r.top)/56*2)*30;time=fmtT(Math.max(0,Math.min(m,23*60)))}
+    lessonForm({date:d.date,time:time||undefined});
+  },
+  closeSheet:(d,t)=>closeSheet(itemOf(t)),
+  cfm:(d,t)=>{const it=itemOf(t);const b=it.ctx.btns[+d.i];closeSheet(it);b.fn()},
+  setStatus:d=>{const l=S.lessons.find(x=>x.id===d.id);l.att.forEach(a=>a.status=d.s);commit()},
+  delLesson:d=>{
+    const l=S.lessons.find(x=>x.id===d.id);
+    const one=()=>{S.lessons=S.lessons.filter(x=>x!==l);commit();toast('Заняття видалено')};
+    const next=()=>{const n=S.lessons.filter(x=>x.series===l.series&&x.date>=l.date).length;S.lessons=S.lessons.filter(x=>!(x.series===l.series&&x.date>=l.date));const sr=S.series.find(z=>z.id===l.series);if(sr){sr.end=ymd(addD(pd(l.date),-1));sr.genUntil=sr.end}commit();toast(`Видалено ${nLessons(n)}`)};
+    confirmSheet('Видалити заняття?',`${dmy(l.date)}, ${l.time}. Оплати учнів залишаться на балансі.`,l.series?[{label:'Лише це заняття',cls:'danger',fn:one},{label:'Це й усі наступні',cls:'danger',fn:next}]:[{label:'Видалити',cls:'danger',fn:one}]);
+  },
+  delStudent:d=>{
+    const s=stu(d.id);
+    confirmSheet(`Видалити ${s.name}?`,'Разом з учнем зникнуть його заняття й історія оплат. Це не можна скасувати.',[{label:'Видалити учня',cls:'danger',fn:()=>{
+      S.students=S.students.filter(x=>x.id!==d.id);S.payments=S.payments.filter(p=>p.sid!==d.id);
+      S.lessons.forEach(l=>l.att=l.att.filter(a=>a.sid!==d.id));S.lessons=S.lessons.filter(l=>l.att.length);S.series.forEach(z=>z.att=z.att.filter(a=>a.sid!==d.id));S.series=S.series.filter(z=>z.att.length);commit();toast('Учня видалено')}}]);
+  },
+  pay:(d,t)=>{
+    const it=itemOf(t);const inp=it.el.querySelector('#amt');
+    const amt=d.amt?+d.amt:Math.abs(+inp.value||0);
+    if(!amt){inp.focus();toast('Вкажіть суму');return}
+    S.payments.push({id:uid(),sid:d.id,date:ymd(new Date()),amount:amt*(+d.sign)});
+    commit();toast(+d.sign>0?`Оплату ${money(amt)} додано`:`Повернення ${money(amt)} записано`);
+  },
+  delPay:d=>{const p=S.payments.find(x=>x.id===d.id);confirmSheet('Видалити запис?',`${p.amount<0?'Повернення':'Оплата'} ${money(Math.abs(p.amount))} від ${dmy(p.date)}.`,[{label:'Видалити',cls:'danger',fn:()=>{S.payments=S.payments.filter(x=>x!==p);commit();toast('Запис видалено')}}])},
+  sort:()=>{ui.sort={name:'debt',debt:'price',price:'name'}[ui.sort];renderStudentList()},
+  filter:d=>{ui.filter=ui.filter===d.f?null:d.f;renderStudentList()},
+  settings:()=>settingsSheet(),
+  startClean:()=>confirmSheet('Почати з чистого аркуша?','Усіх вигаданих учнів і заняття буде видалено.',[{label:'Так, очистити',cls:'danger',fn:()=>{S={students:[],lessons:[],series:[],payments:[],settings:S.settings,sample:false};commit();ui.tab='students';view.innerHTML='';renderMain();toast('Готово. Додайте першого учня')}}]),
+  loadSample:()=>confirmSheet('Показати приклад?','Поточні дані буде замінено вигаданими. Спершу зробіть резервну копію, якщо вона потрібна.',[{label:'Замінити прикладом',cls:'danger',fn:()=>{const st=S.settings;S=sample();S.settings=st;stack.slice().forEach(s=>closeSheet(s));ui.tab='sched';ui.week=mon(new Date());view.innerHTML='';commit()}}]),
+  wipe:()=>confirmSheet('Видалити всі дані?','Учні, заняття й оплати зникнуть з цього пристрою.',[{label:'Видалити все',cls:'danger',fn:()=>{S={students:[],lessons:[],series:[],payments:[],settings:S.settings,sample:false};stack.slice().forEach(s=>closeSheet(s));view.innerHTML='';commit();toast('Дані видалено')}}]),
+  exportData:(d,t)=>{const b=itemOf(t).el;b.querySelector('#exp').hidden=false;b.querySelector('#exp-t').value=JSON.stringify({app:'tutor-journal',v:1,saved:new Date().toISOString(),data:S})},
+  copyExp:(d,t)=>{const ta=itemOf(t).el.querySelector('#exp-t');try{navigator.clipboard.writeText(ta.value).then(()=>toast('Скопійовано'),()=>{ta.select();toast('Виділено. Скопіюйте вручну')})}catch(e){ta.select();toast('Виділено. Скопіюйте вручну')}},
+  dlExp:(d,t)=>{const ta=itemOf(t).el.querySelector('#exp-t');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ta.value],{type:'application/json'}));a.download=`zhurnal-kopiia-${ymd(new Date())}.json`;document.body.appendChild(a);a.click();a.remove()},
+  importData:(d,t)=>{
+    const raw=itemOf(t).el.querySelector('#imp-t').value.trim();
+    let obj;try{obj=JSON.parse(raw);obj=obj.data||obj;if(!Array.isArray(obj.students)||!Array.isArray(obj.lessons))throw 0}catch(e){toast('Це не схоже на копію журналу');return}
+    confirmSheet('Відновити з копії?',`У копії ${nPupils(obj.students.length)} і ${nLessons(obj.lessons.length)}. Поточні дані буде замінено.`,[{label:'Відновити',fn:()=>{S=obj;S.payments=S.payments||[];S.series=S.series||[];S.settings=Object.assign({chargeMissed:false,dayStart:8,dayEnd:21,view:'grid'},S.settings||{});S.sample=false;stack.slice().forEach(s=>closeSheet(s));view.innerHTML='';commit();toast('Дані відновлено')}}]);
+  }
+};
+const CH={
+  paid:(d,t)=>setPaid(d.l,d.s,t.checked),
+  att:(d,t)=>{const l=S.lessons.find(x=>x.id===d.l);l.att.find(a=>a.sid===d.s).status=t.value;commit()},
+  chargeMissed:(d,t)=>{S.settings.chargeMissed=t.checked;commit()},
+  dayStart:(d,t)=>{S.settings.dayStart=+t.value;commit()},
+  dayEnd:(d,t)=>{S.settings.dayEnd=+t.value;commit()}
+};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t)return;const f=A[t.dataset.act];if(f)f(t.dataset,t,e)});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.change&&CH[t.dataset.change])CH[t.dataset.change](t.dataset,t)});
+document.addEventListener('input',e=>{if(e.target.id==='q'){ui.q=e.target.value;renderStudentList()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&stack.length)closeSheet()});
+setInterval(()=>{if(!stack.length&&document.visibilityState==='visible'){compute();if(ui.tab==='sched')renderMain()}},60000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){ensureSeries();commit()}});
+
+/* ---------- sample data (fictional) ---------- */
+function sample(){
+  const now=new Date(), start=ymd(addD(mon(now),-35));
+  const defs=[
+    ['Ліза Лозова','🌸',500,60,[[2,'10:30'],[5,'14:30']],3,{tg:'liza_lozova'}],
+    ['Лев Шевчук','📚',550,60,[[0,'17:30'],[4,'10:30']],-2,{}],
+    ['Ілля Коваленко','🐱',600,60,[[1,'15:00'],[4,'09:00']],0,{}],
+    ['Софія Бондаренко','🎧',600,60,[[0,'11:30'],[3,'18:00']],0,{ig:'sofia.b'}],
+    ['Іван Мельник','🎸',700,90,[[3,'10:00']],0,{note:'Готується до НМТ',phone:'+380 67 123 45 67'}],
+    ['Катя Поліщук','🌿',500,60,[[3,'11:30']],0,{}],
+    ['Макс Ткаченко','🏀',600,60,[[1,'09:00'],[5,'11:30']],-1,{}],
+    ['Віка Савчук','🎨',650,60,[[1,'16:30']],2,{}],
+    ['Влад Сорока','',550,60,[[4,'12:00']],-1,{}]
+  ];
+  const students=[],lessons=[],payments=[],series=[];
+  defs.forEach(([name,emoji,price,dur,slots,fin,extra])=>{
+    const s=Object.assign({id:uid(),name,emoji,price,dur,tg:'',ig:'',phone:'',wa:'',email:'',note:''},extra);students.push(s);s._fin=fin;
+    slots.forEach(([wd,time])=>series.push({id:uid(),wds:[wd],time,dur,name:'',att:[{sid:s.id,price,status:'auto'}],start,genUntil:null,end:null}));
+  });
+  const by=n=>students.find(s=>s.name.startsWith(n));
+  series.push({id:uid(),wds:[0],time:'13:00',dur:60,name:'Група НМТ',color:'var(--gold)',att:[by('Влад'),by('Іван'),by('Катя')].map(s=>({sid:s.id,price:s.price,status:'auto'})),start,genUntil:null,end:null});
+  series.forEach(sr=>genSeries(sr,lessons));
+  const mark=(n,weeksAgo,status)=>{const s=by(n);const l=lessons.filter(l=>l.att.length===1&&l.att[0].sid===s.id&&lStart(l)<addD(now,-7*weeksAgo)).sort((a,b)=>lStart(b)-lStart(a))[0];if(l)l.att[0].status=status};
+  mark('Ілля',2,'cancelled');mark('Макс',1,'missed');
+  students.forEach(s=>{
+    const past=[];lessons.forEach(l=>l.att.forEach(a=>{if(a.sid===s.id&&lStart(l).getTime()+l.dur*60000<=now&&(a.status==='auto'||a.status==='done'))past.push({l,a})}));
+    past.sort((x,y)=>lStart(x.l)-lStart(y.l));
+    const unpaid=s._fin<0?-s._fin:0;
+    past.slice(0,past.length-unpaid).forEach(({l,a})=>payments.push({id:uid(),sid:s.id,date:l.date,amount:a.price,lessonId:l.id}));
+    if(s._fin>0)payments.push({id:uid(),sid:s.id,date:ymd(addD(now,-1)),amount:s.price*s._fin});
+    delete s._fin;
+  });
+  return {students,lessons,series,payments,settings:{chargeMissed:false,dayStart:8,dayEnd:21,view:'grid'},sample:true};
+}
+
+/* ---------- boot ---------- */
+load();ensureSeries();compute();renderMain();save();
+if(hosted&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+})();
+</script>
+
+</body>
+</html>
